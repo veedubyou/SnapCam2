@@ -24,6 +24,7 @@ import android.util.TypedValue;
 import android.view.Surface;
 import android.view.View;
 import android.view.WindowManager;
+import android.view.animation.AlphaAnimation;
 import android.widget.FrameLayout;
 import android.widget.TextView;
 import android.speech.RecognitionListener;
@@ -72,8 +73,6 @@ public class MainActivity extends Activity {
 	    setPreview(cameraId);
 	    
 	    mTimerHandler = new Handler();
-	    
-	    countDown(5);
 	}
 	
 	private void setPreview(int cameraId)
@@ -99,6 +98,9 @@ public class MainActivity extends Activity {
 				if (num > 0)
 				{
 					textView.setText(Integer.toString(num));
+					AlphaAnimation animation = new AlphaAnimation(1.0f, 0.1f);
+					animation.setDuration(900);
+					textView.startAnimation(animation);
 					mTimerHandler.postDelayed(this, 1000);
 				}
 				else
@@ -553,6 +555,10 @@ public class MainActivity extends Activity {
 		mTextView.setTextSize(TypedValue.COMPLEX_UNIT_SP, 80);
 		
 		((FrameLayout)frameView).addView(mTextView);
+		
+		AlphaAnimation animation = new AlphaAnimation(1.0f, 0.5f);
+		animation.setDuration(1000);
+		mTextView.startAnimation(animation);		
 		
 		mTimerHandler.postDelayed(new Runnable()
 		{
