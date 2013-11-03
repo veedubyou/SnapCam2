@@ -254,6 +254,7 @@ public class MainActivity extends Activity {
 		}
 		catch(IllegalArgumentException e)
 		{
+			googleStart(GetSR());
 			Log.w("Parsing", "Cannot evaluate " + res);
 			return false;
 		};
