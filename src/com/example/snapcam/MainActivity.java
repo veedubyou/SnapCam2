@@ -18,11 +18,14 @@ import android.hardware.Camera.PictureCallback;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.Handler;
 import android.util.Log;
+import android.util.TypedValue;
 import android.view.Surface;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.FrameLayout;
+import android.widget.TextView;
 import android.speech.RecognitionListener;
 import android.speech.RecognizerIntent;
 import android.speech.SpeechRecognizer;
@@ -39,6 +42,8 @@ public class MainActivity extends Activity {
 	public final static boolean google = true;
 	private android.speech.SpeechRecognizer msr;
 	private RecognizerCallback listener;
+	private TextView mTextView;
+	private Handler mTimerHandler;
 	/*public enum CamStates {
 		K_STATE_FROZEN,
 		K_STATE_PREVIEW
@@ -72,6 +77,33 @@ public class MainActivity extends Activity {
         preview.addView(mPreview);			    
 
 	    setCameraDisplayOrientation(this, cameraId, mCamera);
+	    
+	    mTimerHandler = new Handler();
+	    
+	    countDown(5);
+	}
+	
+	private Runnable getTimer()
+	{
+		return new Runnable(){
+			@Override
+	        public void run() {
+				TextView textView = mTextView;
+				int num = Integer.valueOf((String) textView.getText());
+				num--;
+				if (num > 0)
+				{
+					textView.setText(Integer.toString(num));
+					mTimerHandler.postDelayed(this, 1000);
+				}
+				else
+				{
+					mTimerHandler.removeCallbacks(this);
+					snapPicture(null);					
+					removeText();
+				}
+	        }			
+		};
 	}
 	
 	/** Create a File for saving an image */
@@ -285,6 +317,7 @@ public class MainActivity extends Activity {
 		catch(IllegalArgumentException e)
 		{
 			googleStart(GetSR());
+			showText("Please try again");
 			Log.w("Parsing", "Cannot evaluate " + res);
 			return false;
 		};
@@ -299,24 +332,28 @@ public class MainActivity extends Activity {
 			case flashon:
 			{
 				toggleFlash(true);
+				showText("Flash on");
 				googleStart(GetSR());
 				break;
 			}
 			case flashoff:
 			{
 				toggleFlash(false);
+				showText("Flash off");
 				googleStart(GetSR());				
 				break;
 			}
 			case front:
 			{
 				toggleCamera(true);
+				showText("Front camera");
 				googleStart(GetSR());				
 				break;
 			}
 			case back:
 			{
 				toggleCamera(false);
+				showText("Back camera");
 				googleStart(GetSR());				
 				break;
 			}
@@ -329,7 +366,7 @@ public class MainActivity extends Activity {
 			case nine:
 			case ten:
 			{
-				snapTimer(com.getValue());		
+				snapTimer(com.getValue());
 				break;
 			}
 			default:
@@ -368,6 +405,7 @@ public class MainActivity extends Activity {
 			case flashon:
 			{
 				toggleFlash(true);
+				showText("Flash on");
 				restartListening();
 				break;
 			}
@@ -481,10 +519,59 @@ public class MainActivity extends Activity {
 
 	}
 	
+	public void countDown(int value)
+	{
+		mTextView = new TextView(this);
+		
+		View frameView = findViewById(R.id.camera_preview);
+		mTextView.setHeight(frameView.getHeight());
+		mTextView.setWidth(frameView.getWidth());
+		
+		mTextView.setTextSize(TypedValue.COMPLEX_UNIT_SP, 150);
+
+		((FrameLayout)frameView).addView(mTextView);
+		
+		mTextView.setText(Integer.toString(value));
+		
+		mTimerHandler.postDelayed(getTimer(), 1000);
+	}
+	
+	public void showText(String str)
+	{
+		mTextView = new TextView(this);
+		mTextView.setText(str);
+		
+		View frameView = findViewById(R.id.camera_preview);
+		mTextView.setHeight(frameView.getHeight());
+		mTextView.setWidth(frameView.getWidth());
+		
+		mTextView.setTextSize(TypedValue.COMPLEX_UNIT_SP, 80);
+		
+		((FrameLayout)frameView).addView(mTextView);
+		
+		mTimerHandler.postDelayed(new Runnable()
+		{
+			@Override
+			public void run() {
+				removeText();
+			}	
+		}, 2000);
+	}
+	
+	public void removeText()
+	{
+		if (mTextView != null)
+		{
+			View frameView = findViewById(R.id.camera_preview);	
+			((FrameLayout)frameView).removeView(mTextView);
+			mTextView = null;
+		}
+	}
+		
 	public void snapTimer(int seconds)
 	{
 		// animate countdown
-		snapPicture(null);
+		countDown(seconds);
 	}
 	
 	public void toggleFlash(boolean on)
