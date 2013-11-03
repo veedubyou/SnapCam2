@@ -21,11 +21,13 @@ import android.os.Environment;
 import android.os.Handler;
 import android.util.Log;
 import android.util.TypedValue;
+import android.view.Gravity;
 import android.view.Surface;
 import android.view.View;
 import android.view.WindowManager;
 import android.view.animation.AlphaAnimation;
 import android.widget.FrameLayout;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.speech.RecognitionListener;
 import android.speech.RecognizerIntent;
@@ -71,7 +73,7 @@ public class MainActivity extends Activity {
 	    };
 
 	    setPreview(cameraId);
-	    
+	    createMic();
 	    mTimerHandler = new Handler();
 	}
 	
@@ -483,6 +485,7 @@ public class MainActivity extends Activity {
 	
 	public void onTap()
 	{
+
 		if (google)
 		{
 			SpeechRecognizer sr = GetSR();
@@ -510,6 +513,8 @@ public class MainActivity extends Activity {
 	
 	public void snapPicture(View v)
 	{
+		hideMic();
+		//addMic();
 		//switch(mPreviewState){
 		//case K_STATE_FROZEN:
 			//releaseCameraAndPreview();
@@ -524,6 +529,49 @@ public class MainActivity extends Activity {
 			
 		//}
 
+	}
+	
+	public void createMic(){
+		
+		View frameView = findViewById(R.id.camera_preview);
+		ImageView image = new ImageView(getApplicationContext());
+		
+		int imgID = R.drawable.mic_on;
+		image.setImageResource(imgID);
+		image.setId(3333);
+		
+		FrameLayout.LayoutParams layoutParams= new FrameLayout.LayoutParams(80,80);
+		layoutParams.gravity=Gravity.BOTTOM;
+		image.setLayoutParams(layoutParams);
+
+		((FrameLayout)frameView).addView(image);
+	}
+	
+	public void showMic(){
+	//show mic image view
+		
+		try{
+			ImageView image = (ImageView) findViewById(3333);
+			image.setVisibility(View.VISIBLE);
+			
+		}
+		catch(Exception e){
+			Log.d(TAG,"Failed to load img");
+			
+		}
+	}
+	
+	public void hideMic(){
+		try{
+			ImageView image = (ImageView) findViewById(3333);
+			image.setVisibility(View.INVISIBLE);
+			
+		}
+		catch(Exception e){
+			Log.d(TAG,"Failed to load img");
+			
+		}
+		
 	}
 	
 	public void countDown(int value)
