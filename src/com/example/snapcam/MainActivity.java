@@ -19,6 +19,9 @@ import android.view.Surface;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.FrameLayout;
+import android.speech.RecognitionListener;
+import android.speech.RecognizerIntent;
+import android.speech.SpeechRecognizer;
 
 public class MainActivity extends Activity {
 	private Camera mCamera;
@@ -26,8 +29,12 @@ public class MainActivity extends Activity {
     private static final int cameraId = Camera.CameraInfo.CAMERA_FACING_BACK;
     private SpeechRecognizer mSpeech;
     private boolean listening = false;
+    private boolean started = false;
 	private PictureCallback mPicCallback = null;
 	public final static String TAG = "MainActivity";
+	public final static boolean google = true;
+	private android.speech.SpeechRecognizer msr;
+	private RecognizerCallback listener;
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -138,10 +145,22 @@ public class MainActivity extends Activity {
 	{
 		if (mSpeech == null)
 		{
-			mSpeech = new SpeechRecognizer(this);
+			//mSpeech = new SpeechRecognizer(this);
 		}
 		
 		return mSpeech;
+	}
+	
+	private android.speech.SpeechRecognizer GetSR()
+	{
+		if (msr == null)
+		{
+			msr = SpeechRecognizer.createSpeechRecognizer(this);
+			listener = new RecognizerCallback();
+			msr.setRecognitionListener(listener);
+		}
+		
+		return msr;
 	}
 	
 	private void releaseCameraAndPreview(){
@@ -189,16 +208,32 @@ public class MainActivity extends Activity {
 	
 	public void startListening()
 	{
-		listening = true;		
-	    SpeechRecognizer speech = GetSpeechRecognizer();
-	    speech.startRecognition();
+		if (!listening)
+		{
+			listening = true;		
+		    SpeechRecognizer speech = GetSpeechRecognizer();
+		    //speech.startRecognition();
+		}
 	}
 	
 	public void stopListening()
 	{
-		SpeechRecognizer speech = GetSpeechRecognizer();
-	    speech.stop();
-	    listening = false;
+		if (listening)
+		{
+			SpeechRecognizer speech = GetSpeechRecognizer();
+		    //speech.stop();
+		    listening = false;
+		    started = false;
+		}
+	}
+	
+	public void restartListening()
+	{
+		if (listening)
+		{
+			SpeechRecognizer speech = GetSpeechRecognizer();
+		    //speech.stop();			
+		}
 	}
 	
 	public boolean parseResults(String res)
@@ -220,26 +255,31 @@ public class MainActivity extends Activity {
 			case snap:
 			{
 				snapPicture(null);
+				stopListening();
 				break;
 			}
 			case flashon:
 			{
 				toggleFlash(true);
+				restartListening();
 				break;
 			}
 			case flashoff:
 			{
 				toggleFlash(false);
+				restartListening();				
 				break;
 			}
 			case front:
 			{
 				toggleCamera(true);
+				restartListening();				
 				break;
 			}
 			case back:
 			{
 				toggleCamera(false);
+				restartListening();				
 				break;
 			}
 			case three:
@@ -252,11 +292,13 @@ public class MainActivity extends Activity {
 			case ten:
 			{
 				snapTimer(com.getValue());
+				stopListening();			
 				break;
 			}
 			default:
 			{
 				Log.e("Parsing", "shouldn't reach here");
+				stopListening();
 				return false;
 			}
 		}
@@ -266,8 +308,11 @@ public class MainActivity extends Activity {
 	
 	public void onPartialResult(String res)
 	{
-		Log.d("result", res);
-		parseResults(res);
+		if (started)
+		{
+			Log.d("result", res);
+			parseResults(res);
+		}
 	}
 	
 	public void onResult(String res)
@@ -278,13 +323,31 @@ public class MainActivity extends Activity {
 	
 	public void onTap()
 	{
-		if (listening)
+		if (google)
 		{
-			stopListening();
+			SpeechRecognizer sr = GetSR();
+			if (listener.isListening())
+			{
+				sr.cancel();				
+			}
+			else
+			{
+				Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
+				// TODO add more intents
+				sr.startListening(intent);
+				listener.setListening(true);
+			}
 		}
 		else
 		{
-			startListening();
+			if (listening)
+			{
+				stopListening();
+			}
+			else
+			{
+				startListening();
+			}
 		}
 	}
 	
@@ -308,5 +371,15 @@ public class MainActivity extends Activity {
 	public void toggleCamera(boolean front)
 	{
 		
+	}
+	
+	public void onListenStarted()
+	{
+		started = true;
+	}
+
+	public void onListenEnded()
+	{
+		started = false;
 	}
 }
