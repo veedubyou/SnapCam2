@@ -54,8 +54,9 @@ public class MainActivity extends Activity {
         preview.addView(mPreview);			    
 	
 	    setCameraDisplayOrientation(this, cameraId, mCamera);
-	/*
+	
 	    SpeechRecognizer r = new SpeechRecognizer(this);
+<<<<<<< HEAD
 	    r.startRecognition();*/
 	}
 	
@@ -125,6 +126,9 @@ public class MainActivity extends Activity {
 		}
 		return mPicCallback;
 		
+=======
+	    r.startRecognition();
+>>>>>>> branch 'master' of https://github.com/vincentwhwoo/SnapCam2.git
 	}
 	
 	@Override
