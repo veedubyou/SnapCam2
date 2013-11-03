@@ -69,6 +69,15 @@ public class MainActivity extends Activity {
 	    	e.printStackTrace();
 	    };
 
+	    setPreview(cameraId);
+	    
+	    mTimerHandler = new Handler();
+	    
+	    countDown(5);
+	}
+	
+	private void setPreview(int cameraId)
+	{
         // Create our Preview view and set it as the content of our activity.
         mPreview = new CameraPreview(this, mCamera);
         
@@ -76,11 +85,7 @@ public class MainActivity extends Activity {
         FrameLayout preview = (FrameLayout) findViewById(R.id.camera_preview);
         preview.addView(mPreview);			    
 
-	    setCameraDisplayOrientation(this, cameraId, mCamera);
-	    
-	    mTimerHandler = new Handler();
-	    
-	    countDown(5);
+	    setCameraDisplayOrientation(this, cameraId, mCamera);		
 	}
 	
 	private Runnable getTimer()
@@ -576,12 +581,28 @@ public class MainActivity extends Activity {
 	
 	public void toggleFlash(boolean on)
 	{
+		Camera.Parameters parameters = mCamera.getParameters();
+		if (on)
+		{
+			parameters.setFlashMode(Camera.Parameters.FLASH_MODE_ON);
+		}
+		else
+		{
+			parameters.setFlashMode(Camera.Parameters.FLASH_MODE_OFF);
+		}
 		
+		mCamera.setParameters(parameters);
 	}
 	
 	public void toggleCamera(boolean front)
 	{
-		
+		if (Camera.getNumberOfCameras() > 1)
+		{
+			releaseCameraAndPreview();
+			int cameraId = front ? Camera.CameraInfo.CAMERA_FACING_FRONT : Camera.CameraInfo.CAMERA_FACING_BACK;
+			mCamera = Camera.open(cameraId);
+			setPreview(cameraId);
+		}
 	}
 	
 	public void onListenStarted()
