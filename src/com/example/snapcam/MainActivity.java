@@ -525,14 +525,14 @@ public class MainActivity extends Activity {
 		if (google)
 		{
 			SpeechRecognizer sr = GetSR();
-			if (listener.isListening())
+			/*if (listener.isListening())
 			{
 				sr.cancel();				
 			}
 			else
-			{
+			{*/
 				googleStart(sr);
-			}
+			//}
 		}
 		else
 		{
@@ -685,5 +685,10 @@ public class MainActivity extends Activity {
 	public void onListenEnded()
 	{
 		started = false;
+	}
+	
+	public void onStopListening()
+	{
+		
 	}
 }

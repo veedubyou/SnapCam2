@@ -38,6 +38,7 @@ public class RecognizerCallback implements RecognitionListener {
 	@Override
 	public void onError(int error) {
 		listening = false;
+		activity.onStopListening();
 		// TODO Auto-generated method stub
 
 	}
