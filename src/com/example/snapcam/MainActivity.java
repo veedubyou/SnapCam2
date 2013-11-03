@@ -28,6 +28,10 @@ public class MainActivity extends Activity {
     private boolean listening = false;
 	private PictureCallback mPicCallback = null;
 	public final static String TAG = "MainActivity";
+	/*public enum CamStates {
+		K_STATE_FROZEN,
+		K_STATE_PREVIEW
+	}*/
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -51,6 +55,7 @@ public class MainActivity extends Activity {
 
         // Create our Preview view and set it as the content of our activity.
         mPreview = new CameraPreview(this, mCamera);
+        //CamStates mPreviewState = K_STATE_PREVIEW;
         FrameLayout preview = (FrameLayout) findViewById(R.id.camera_preview);
         preview.addView(mPreview);			    
 
@@ -106,6 +111,8 @@ public class MainActivity extends Activity {
 			            fos.write(data);
 			            fos.close();
 			            
+			    		mCamera.startPreview();
+			            
 			            //force scan the SD Card so the images show up in Gallery
 			            sendBroadcast(new Intent(Intent.ACTION_MEDIA_MOUNTED, Uri.parse("file://"+ Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES))));
 			            /*
@@ -121,6 +128,7 @@ public class MainActivity extends Activity {
 			    }
 			};
 		}
+
 		return mPicCallback;
 	}
 	
@@ -290,8 +298,20 @@ public class MainActivity extends Activity {
 	
 	public void snapPicture(View v)
 	{
-		//shutterCallBack, PictureCallback,picturecallback,picturecallback)
-		mCamera.takePicture(null, null, mPicCallback);
+		//switch(mPreviewState){
+		//case K_STATE_FROZEN:
+			//releaseCameraAndPreview();
+			//mCamera.startPreview();
+			//mPreviewState = K_STATE_PREVIEW;
+			//break;
+		//default:
+			//shutterCallBack, PictureCallback,picturecallback,picturecallback)
+			mCamera.takePicture(null, null, mPicCallback);
+			//mCamera.startPreview();
+			//mPreviewState = K_STATE_FROZEN;
+			
+		//}
+
 	}
 	
 	public void snapTimer(int seconds)
