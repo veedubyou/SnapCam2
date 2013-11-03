@@ -12,9 +12,11 @@ import android.content.Intent;
 import android.content.res.Configuration;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Color;
 import android.graphics.Matrix;
 import android.hardware.Camera;
 import android.hardware.Camera.PictureCallback;
+import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
@@ -45,6 +47,7 @@ public class MainActivity extends Activity {
 	private RecognizerCallback listener;
 	private TextView mTextView;
 	private Handler mTimerHandler;
+	private MediaPlayer mPlayer;
 	/*public enum CamStates {
 		K_STATE_FROZEN,
 		K_STATE_PREVIEW
@@ -73,6 +76,7 @@ public class MainActivity extends Activity {
 	    setPreview(cameraId);
 	    
 	    mTimerHandler = new Handler();
+	    mPlayer = MediaPlayer.create(this, R.raw.cam_shutter);
 	}
 	
 	private void setPreview(int cameraId)
@@ -317,6 +321,41 @@ public class MainActivity extends Activity {
 	{
 		String result = res.toLowerCase().trim().replaceAll(" ", "");
 		
+		if (result.contains("3"))
+		{
+			result = result.replace("3", "three");
+		}
+		else if (result.contains("4"))
+		{
+			result = result.replace("4", "four");
+		}
+		else if (result.contains("5"))
+		{
+			result = result.replace("5", "five");
+		}
+		else if (result.contains("6"))
+		{
+			result = result.replace("6", "six");
+		}
+		else if (result.contains("7"))
+		{
+			result = result.replace("7", "seven");
+		}
+		else if (result.contains("8"))
+		{
+			result = result.replace("8", "eight");
+		}
+		else if (result.contains("9"))
+		{
+			result = result.replace("9", "nine");
+		}
+		else if (result.contains("10"))
+		{
+			result = result.replace("10", "ten");
+		}
+		
+		Log.i("resulting string", result);
+		
 		Commands com = null;
 		try{
 			com = Commands.valueOf(result);
@@ -324,7 +363,7 @@ public class MainActivity extends Activity {
 		catch(IllegalArgumentException e)
 		{
 			googleStart(GetSR());
-			showText("Please try again");
+			showText("We heard \"" + res + "\", please try again");
 			Log.w("Parsing", "Cannot evaluate " + res);
 			return false;
 		};
@@ -350,28 +389,28 @@ public class MainActivity extends Activity {
 				googleStart(GetSR());				
 				break;
 			}
-			case front:
+			case frontcamera:
 			{
 				toggleCamera(true);
 				showText("Front camera");
 				googleStart(GetSR());				
 				break;
 			}
-			case back:
+			case backcamera:
 			{
 				toggleCamera(false);
 				showText("Back camera");
 				googleStart(GetSR());				
 				break;
 			}
-			case three:
-			case four:
-			case five:
-			case six:
-			case seven:
-			case eight:
-			case nine:
-			case ten:
+			case threeseconds:
+			case fourseconds:
+			case fiveseconds:
+			case sixseconds:
+			case sevenseconds:
+			case eightseconds:
+			case nineseconds:
+			case tenseconds:
 			{
 				snapTimer(com.getValue());
 				break;
@@ -386,7 +425,7 @@ public class MainActivity extends Activity {
 		
 		return true;		
 	}
-	
+	/*
 	public boolean parseResults(String res)
 	{
 		String result = res.toLowerCase().trim().replaceAll(" ", "");
@@ -457,20 +496,20 @@ public class MainActivity extends Activity {
 		
 		return true;
 	}
-	
+	*/
 	public void onPartialResult(String res)
 	{
 		if (started)
 		{
 			Log.d("result", res);
-			parseResults(res);
+			//parseResults(res);
 		}
 	}
 	
 	public void onResult(String res)
 	{
 		Log.d("result", res);
-		parseResults(res);
+		//parseResults(res);
 	}
 	
 	public void googleStart(SpeechRecognizer sr)
@@ -518,6 +557,8 @@ public class MainActivity extends Activity {
 			//break;
 		//default:
 			//shutterCallBack, PictureCallback,picturecallback,picturecallback)
+			mPlayer.reset();
+			mPlayer.start();
 			mCamera.takePicture(null, null, mPicCallback);
 			//mCamera.startPreview();
 			//mPreviewState = K_STATE_FROZEN;
@@ -535,7 +576,7 @@ public class MainActivity extends Activity {
 		mTextView.setWidth(frameView.getWidth());
 		
 		mTextView.setTextSize(TypedValue.COMPLEX_UNIT_SP, 150);
-
+		mTextView.setTextColor(Color.WHITE);
 		((FrameLayout)frameView).addView(mTextView);
 		
 		mTextView.setText(Integer.toString(value));
@@ -552,8 +593,8 @@ public class MainActivity extends Activity {
 		mTextView.setHeight(frameView.getHeight());
 		mTextView.setWidth(frameView.getWidth());
 		
-		mTextView.setTextSize(TypedValue.COMPLEX_UNIT_SP, 80);
-		
+		mTextView.setTextSize(TypedValue.COMPLEX_UNIT_SP, 40);
+		mTextView.setTextColor(Color.WHITE);		
 		((FrameLayout)frameView).addView(mTextView);
 		
 		AlphaAnimation animation = new AlphaAnimation(1.0f, 0.5f);
