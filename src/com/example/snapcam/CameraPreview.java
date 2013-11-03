@@ -7,15 +7,18 @@ import android.content.Context;
 import android.hardware.Camera;
 import android.hardware.Camera.Size;
 import android.util.Log;
+import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 
 public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback {
     private SurfaceHolder mHolder;
     private Camera mCamera;
+    private MainActivity mainActivity;
 
-    public CameraPreview(Context context, Camera camera) {
+    public CameraPreview(MainActivity context, Camera camera) {
         super(context);
+        mainActivity = context;
         mCamera = camera;
 
         // Install a SurfaceHolder.Callback so we get notified when the
@@ -104,5 +107,17 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
         } catch (Exception e){
 	        // TODO: return error message        	
         }
+    }
+    
+    @Override
+    public boolean onTouchEvent(MotionEvent event)
+    {
+    	super.onTouchEvent(event);
+		if (event.getActionMasked() == 0 /*ACTION_DOWN*/)
+		{
+			mainActivity.onTap();
+			return true;
+		}
+    	return false;
     }
 }
