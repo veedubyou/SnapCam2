@@ -8,6 +8,12 @@ import android.speech.RecognitionListener;
 public class RecognizerCallback implements RecognitionListener {
 
 	boolean listening = false;
+	MainActivity activity;
+	
+	public RecognizerCallback(MainActivity activity)
+	{
+		this.activity = activity;
+	}
 	
 	@Override
 	public void onBeginningOfSpeech() {
@@ -58,12 +64,8 @@ public class RecognizerCallback implements RecognitionListener {
 	public void onResults(Bundle results) {
 		// TODO Auto-generated method stub
 		String str = new String();
-        ArrayList data = results.getStringArrayList(android.speech.SpeechRecognizer.RESULTS_RECOGNITION);
-        for (int i = 0; i < data.size(); i++)
-        {
-                  str += data.get(i);
-        }
-        //mText.setText("results: "+String.valueOf(data.size()));      
+        ArrayList<String> data = results.getStringArrayList(android.speech.SpeechRecognizer.RESULTS_RECOGNITION);
+        activity.onResult(data.get(0));
 	}
 
 	@Override

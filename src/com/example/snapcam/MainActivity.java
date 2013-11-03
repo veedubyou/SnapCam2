@@ -164,7 +164,7 @@ public class MainActivity extends Activity {
 		if (msr == null)
 		{
 			msr = SpeechRecognizer.createSpeechRecognizer(this);
-			listener = new RecognizerCallback();
+			listener = new RecognizerCallback(this);
 			msr.setRecognitionListener(listener);
 		}
 		
@@ -242,6 +242,74 @@ public class MainActivity extends Activity {
 			SpeechRecognizer speech = GetSpeechRecognizer();
 		    //speech.stop();			
 		}
+	}
+	
+	public boolean parseGoogleResults(String res)
+	{
+		String result = res.toLowerCase().trim().replaceAll(" ", "");
+		
+		Commands com = null;
+		try{
+			com = Commands.valueOf(result);
+		}
+		catch(IllegalArgumentException e)
+		{
+			Log.w("Parsing", "Cannot evaluate " + res);
+			return false;
+		};
+		
+		switch (com)
+		{
+			case snap:
+			{
+				snapPicture(null);
+				break;
+			}
+			case flashon:
+			{
+				toggleFlash(true);
+				googleStart(GetSR());
+				break;
+			}
+			case flashoff:
+			{
+				toggleFlash(false);
+				googleStart(GetSR());				
+				break;
+			}
+			case front:
+			{
+				toggleCamera(true);
+				googleStart(GetSR());				
+				break;
+			}
+			case back:
+			{
+				toggleCamera(false);
+				googleStart(GetSR());				
+				break;
+			}
+			case three:
+			case four:
+			case five:
+			case six:
+			case seven:
+			case eight:
+			case nine:
+			case ten:
+			{
+				snapTimer(com.getValue());		
+				break;
+			}
+			default:
+			{
+				Log.e("Parsing", "shouldn't reach here");
+				stopListening();
+				return false;
+			}
+		}
+		
+		return true;		
 	}
 	
 	public boolean parseResults(String res)
@@ -329,6 +397,14 @@ public class MainActivity extends Activity {
 		parseResults(res);
 	}
 	
+	public void googleStart(SpeechRecognizer sr)
+	{
+		Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
+		// TODO add more intents
+		sr.startListening(intent);
+		listener.setListening(true);		
+	}
+	
 	public void onTap()
 	{
 		if (google)
@@ -340,10 +416,7 @@ public class MainActivity extends Activity {
 			}
 			else
 			{
-				Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
-				// TODO add more intents
-				sr.startListening(intent);
-				listener.setListening(true);
+				googleStart(sr);
 			}
 		}
 		else
