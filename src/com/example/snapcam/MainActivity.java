@@ -323,6 +323,7 @@ public class MainActivity extends Activity {
 	
 	public boolean parseGoogleResults(String res)
 	{
+		hideMic();
 		String result = res.toLowerCase().trim().replaceAll(" ", "");
 		
 		if (result.contains("3"))
@@ -518,6 +519,7 @@ public class MainActivity extends Activity {
 	
 	public void googleStart(SpeechRecognizer sr)
 	{
+		showMic();
 		Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
 		// TODO add more intents
 		sr.startListening(intent);
@@ -610,9 +612,11 @@ public class MainActivity extends Activity {
 		
 		FrameLayout.LayoutParams layoutParams= new FrameLayout.LayoutParams(80,80);
 		layoutParams.gravity=Gravity.BOTTOM;
+		layoutParams.bottomMargin = 150;
 		image.setLayoutParams(layoutParams);
 
 		((FrameLayout)frameView).addView(image);
+		hideMic();
 	}
 	
 	public void showMic(){
@@ -701,6 +705,12 @@ public class MainActivity extends Activity {
 		countDown(seconds);
 	}
 	
+	public void toggleFlash()
+	{
+		Camera.Parameters paramters = mCamera.getParameters();
+		toggleFlash(paramters.getFlashMode().equals(Camera.Parameters.FLASH_MODE_ON));
+	}
+	
 	public void toggleFlash(boolean on)
 	{
 		Camera.Parameters parameters = mCamera.getParameters();
@@ -716,14 +726,18 @@ public class MainActivity extends Activity {
 		mCamera.setParameters(parameters);
 	}
 	
+	
 	public void toggleCamera(boolean front)
 	{
 		if (Camera.getNumberOfCameras() > 1)
 		{
+			FrameLayout preview = (FrameLayout) findViewById(R.id.camera_preview);
+			preview.removeAllViews();;
 			releaseCameraAndPreview();
 			int cameraId = front ? Camera.CameraInfo.CAMERA_FACING_FRONT : Camera.CameraInfo.CAMERA_FACING_BACK;
 			mCamera = Camera.open(cameraId);
 			setPreview(cameraId);
+			createMic();
 		}
 	}
 	
@@ -739,6 +753,6 @@ public class MainActivity extends Activity {
 	
 	public void onStopListening()
 	{
-		
+		hideMic();
 	}
 }
