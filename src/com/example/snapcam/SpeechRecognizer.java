@@ -103,6 +103,13 @@ public class SpeechRecognizer {
             throw new IllegalStateException("not started");
         handler.sendMessage(handler.obtainMessage(MSG_STOP));
     }
+    
+    public void restart() {
+        if (!isActive())
+            throw new IllegalStateException("not started");
+        handler.sendMessage(handler.obtainMessage(MSG_STOP));
+        handler.sendMessage(handler.obtainMessage(MSG_START));        
+    }    
 
     public void cancel() {
         if (!isActive())
@@ -137,6 +144,15 @@ public class SpeechRecognizer {
     private void startUtterance() {
         decoder.startUtt(null);
         recorder.startRecording();
+        
+        listenerHandler.post(new Runnable()
+        {
+        	@Override
+        	public void run(){
+        		listener.onListenStarted();
+        	}
+        	
+        });
     }
 
     private void continueUtterance() {
@@ -168,6 +184,14 @@ public class SpeechRecognizer {
             decoder.endUtt();
             return;
         }
+        
+        listenerHandler.post(new Runnable()
+        {
+        	@Override
+        	public void run(){
+        		listener.onListenEnded();
+        	}
+        });           
 
         int nread = recorder.read(buffer, 0, buffer.length);
         if (nread > 0)
@@ -184,5 +208,7 @@ public class SpeechRecognizer {
                 }
             });
         }
+        
+     
     }
 }
