@@ -558,6 +558,31 @@ public class MainActivity extends Activity {
 		//default:
 			//shutterCallBack, PictureCallback,picturecallback,picturecallback)
 			mPlayer.reset();
+			try {
+				mPlayer.setDataSource(this, 
+						Uri.parse("android.resource://com.example.snapcam/" + R.raw.cam_shutter));
+			} catch (IllegalArgumentException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (SecurityException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (IllegalStateException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			try {
+				mPlayer.prepare();
+			} catch (IllegalStateException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 			mPlayer.start();
 			mCamera.takePicture(null, null, mPicCallback);
 			//mCamera.startPreview();
