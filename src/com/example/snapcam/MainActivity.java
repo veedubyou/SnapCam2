@@ -6,9 +6,13 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+
 import android.app.Activity;
 import android.content.Intent;
 import android.content.res.Configuration;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.Matrix;
 import android.hardware.Camera;
 import android.hardware.Camera.PictureCallback;
 import android.net.Uri;
@@ -55,6 +59,7 @@ public class MainActivity extends Activity {
 
         // Create our Preview view and set it as the content of our activity.
         mPreview = new CameraPreview(this, mCamera);
+        
         //CamStates mPreviewState = K_STATE_PREVIEW;
         FrameLayout preview = (FrameLayout) findViewById(R.id.camera_preview);
         preview.addView(mPreview);			    
@@ -99,32 +104,57 @@ public class MainActivity extends Activity {
 
 			    @Override
 			    public void onPictureTaken(byte[] data, Camera camera) {
-
-			        File pictureFile = getOutputMediaFile();
-			        if (pictureFile == null){
-			            Log.d(TAG, "Error creating media file, check storage permissions: ");
-			            return;
-			        }
-
-			        try {
-			            FileOutputStream fos = new FileOutputStream(pictureFile);
-			            fos.write(data);
-			            fos.close();
-			            
-			    		mCamera.startPreview();
-			            
-			            //force scan the SD Card so the images show up in Gallery
-			            sendBroadcast(new Intent(Intent.ACTION_MEDIA_MOUNTED, Uri.parse("file://"+ Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES))));
-			            /*
-			             potentially possibly better to use Media Scanner
-			             */
-			            
-			            
-			        } catch (FileNotFoundException e) {
-			            Log.d(TAG, "File not found: " + e.getMessage());
-			        } catch (IOException e) {
-			            Log.d(TAG, "Error accessing file: " + e.getMessage());
-			        }
+			    	if(data != null){
+			    		
+			    		//create a bitmap so we can rotate the image
+			    		int screenWidth = getResources().getDisplayMetrics().widthPixels;
+		                int screenHeight = getResources().getDisplayMetrics().heightPixels;
+		                Bitmap bm = BitmapFactory.decodeByteArray(data, 0, (data != null) ? data.length : 0);
+			    		
+		                if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT) {
+		                    // Notice that width and height are reversed
+		                    Bitmap scaled = Bitmap.createScaledBitmap(bm, screenHeight, screenWidth, true);
+		                    int w = scaled.getWidth();
+		                    int h = scaled.getHeight();
+		                    // Setting post rotate to 90
+		                    Matrix mtx = new Matrix();
+		                    mtx.postRotate(90);
+		                    // Rotating Bitmap
+		                    bm = Bitmap.createBitmap(scaled, 0, 0, w, h, mtx, true);
+		                }else{// LANDSCAPE MODE
+		                    //No need to reverse width and height
+		                    Bitmap scaled = Bitmap.createScaledBitmap(bm, screenWidth,screenHeight , true);
+		                    bm=scaled;
+		                }
+		                
+				        File pictureFile = getOutputMediaFile();
+				        if (pictureFile == null){
+				            Log.d(TAG, "Error creating media file, check storage permissions: ");
+				            return;
+				        }
+	
+				        try {
+				            FileOutputStream fos = new FileOutputStream(pictureFile);
+				            //ByteArrayOutputStream outstudentstreamOutputStream = new ByteArrayOutputStream();
+				            bm.compress(Bitmap.CompressFormat.PNG, 100,fos);
+				            //fos.write(data);
+				            fos.close();
+				            
+				    		mCamera.startPreview();
+				            
+				            //force scan the SD Card so the images show up in Gallery
+				            sendBroadcast(new Intent(Intent.ACTION_MEDIA_MOUNTED, Uri.parse("file://"+ Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES))));
+				            /*
+				             potentially possibly better to use Media Scanner
+				             */
+				            
+				            
+				        } catch (FileNotFoundException e) {
+				            Log.d(TAG, "File not found: " + e.getMessage());
+				        } catch (IOException e) {
+				            Log.d(TAG, "Error accessing file: " + e.getMessage());
+				        }
+				    }
 			    }
 			};
 		}
