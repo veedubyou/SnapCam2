@@ -2,22 +2,20 @@
 
 grammar dialog;
 
-<digit> = oh    |
-          zero  |
-          one   |
-          two   |
-          three |
+<digit> = three |
           four  |
           five  |
           six   |
           seven |
           eight |
-          nine  ;
+          nine |
+          ten ;
 
-<number> = <digit>+ [point <digit>+];
+<cam_command> =  snap | 
+                 <digit> | 
+                 flash on | 
+                 flash off | 
+                 front | 
+                 back;
 
-<bank_command> = [show | check] balance |
-                 deposit <number>       |
-                 withdraw <number>      ;
-
-public <command> = <bank_command>;
+public <command> = <cam_command>;

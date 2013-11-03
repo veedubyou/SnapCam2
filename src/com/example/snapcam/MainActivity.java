@@ -41,9 +41,9 @@ public class MainActivity extends Activity {
         preview.addView(mPreview);			    
 	
 	    setCameraDisplayOrientation(this, cameraId, mCamera);
-	/*
+	
 	    SpeechRecognizer r = new SpeechRecognizer(this);
-	    r.startRecognition();*/
+	    r.startRecognition();
 	}
 	
 	@Override

@@ -33,29 +33,6 @@ public class SpeechRecognizer {
     static {
         System.loadLibrary("pocketsphinx_jni");
     }
-    
-    public static SpeechRecognizer createGrammarRecognizer(MainActivity context) {
-        ensureCreatedInstance(context);
-        instance.decoder.updateFsgset();
-        
-        return instance;
-    }
-    
-    public static SpeechRecognizer createNGramRecognizer(MainActivity context) {
-        ensureCreatedInstance(context);
-        instance.decoder.updateLmset(null);
-        
-        return instance;
-    }
-    
-    private static void ensureCreatedInstance(MainActivity context) {
-        if (null == instance) {
-            synchronized (SpeechRecognizer.class) {
-                if (null == instance)
-                    instance = new SpeechRecognizer(context);
-            }
-        }
-    }
 
     private static final String joinPath(File dir, String path) {
         return new File(dir, path).getPath();
@@ -70,9 +47,11 @@ public class SpeechRecognizer {
     private final HandlerThread handlerThread;
 
     private final Handler listenerHandler = new Handler(Looper.getMainLooper());
-    private RecognitionListener listener;
+    private MainActivity listener;
 
-    private SpeechRecognizer(MainActivity context) {
+    public SpeechRecognizer(MainActivity context) {
+        this.listener = context;
+        
         recorder = new AudioRecord(MediaRecorder.AudioSource.VOICE_RECOGNITION,
                                    SAMPLE_RATE,
                                    AudioFormat.CHANNEL_IN_MONO,
@@ -83,15 +62,12 @@ public class SpeechRecognizer {
 
         try {
             File modelsDir = syncAssets(context, "models");
-            File root = modelsDir.getParentFile();
-            setLogFile(new File(root, "pocketsphinx.log").getPath());
 
-            config.setString("-lm", joinPath(modelsDir, "lm/weather.lm"));
+            //config.setString("-lm", joinPath(modelsDir, "lm/weather.lm"));
             config.setString("-jsgf", joinPath(modelsDir, "dialog.gram"));
-            config.setString("-dict", joinPath(modelsDir, "lm/cmu07a.dic"));
-            config.setString("-hmm", joinPath(modelsDir, "hmm/hub4wsj_sc_8k"));
+            //config.setString("-dict", joinPath(modelsDir, "lm/cmu07a.dic"));
+            config.setString("-hmm", joinPath(modelsDir, "acoustic"));
 
-            config.setString("-rawlogdir", root.getPath());
             config.setFloat("-samprate", SAMPLE_RATE);
             config.setInt("-maxhmmpf", 10000);
             config.setBoolean("-backtrace", true);
@@ -102,7 +78,8 @@ public class SpeechRecognizer {
         }
 
         decoder = new Decoder(config);
-
+        decoder.updateFsgset();
+        
         handlerThread = new HandlerThread(getClass().getSimpleName());
         handlerThread.start();
         handler = new Handler(handlerThread.getLooper(), new Callback() {
@@ -114,11 +91,10 @@ public class SpeechRecognizer {
         });
     }
 
-    public void startRecognition(RecognitionListener listener) {
+    public void startRecognition() {
         if (isActive())
             throw new IllegalStateException("already started");
-
-        this.listener = listener;
+        
         handler.sendMessage(handler.obtainMessage(MSG_START));
     }
 
@@ -174,7 +150,7 @@ public class SpeechRecognizer {
                 listenerHandler.post(new Runnable() {
                     @Override
                     public void run() {
-                        listener.onPartialResult(new SpeechResult(decoder));
+                        listener.onPartialResult(decoder.hyp().getHypstr());
                     }
                 });
             }
@@ -204,7 +180,7 @@ public class SpeechRecognizer {
             listenerHandler.post(new Runnable() {
                 @Override
                 public void run() {
-                    listener.onResult(new SpeechResult(decoder));
+                    listener.onResult(decoder.hyp().getHypstr());
                 }
             });
         }
