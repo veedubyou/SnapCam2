@@ -1,12 +1,23 @@
 package com.example.snapcam;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
 import android.app.Activity;
+import android.content.Intent;
 import android.content.res.Configuration;
 import android.hardware.Camera;
+import android.hardware.Camera.PictureCallback;
+import android.net.Uri;
 import android.os.Bundle;
+import android.os.Environment;
 import android.util.Log;
-import android.view.Menu;
 import android.view.Surface;
+import android.view.View;
 import android.view.WindowManager;
 import android.widget.FrameLayout;
 
@@ -14,6 +25,8 @@ public class MainActivity extends Activity {
 	private Camera mCamera;
     private CameraPreview mPreview;
     private static final int cameraId = Camera.CameraInfo.CAMERA_FACING_BACK;
+	private PictureCallback mPicCallback = null;
+	public final static String TAG = "MainActivity";
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -25,7 +38,7 @@ public class MainActivity extends Activity {
 		
 		try{
 			releaseCameraAndPreview();
-			
+			mPicCallback = getPicCallback();
 			// Create an instance of Camera
 			mCamera = Camera.open(cameraId); // attempt to get a Camera instance
 	    }
@@ -46,6 +59,74 @@ public class MainActivity extends Activity {
 	    r.startRecognition();*/
 	}
 	
+	/** Create a File for saving an image */
+	private static File getOutputMediaFile(){
+	    // To be safe, you should check that the SDCard is mounted
+	    // using Environment.getExternalStorageState() before doing this.
+
+	    File mediaStorageDir = new File(Environment.getExternalStoragePublicDirectory(
+	              Environment.DIRECTORY_PICTURES), "SnapCam");
+	    // This location works best if you want the created images to be shared
+	    // between applications and persist after your app has been uninstalled.
+
+	    // Create the storage directory if it does not exist
+	    if (! mediaStorageDir.exists()){
+	        if (! mediaStorageDir.mkdirs()){
+	            Log.d("MyCameraApp", "failed to create directory");
+	            return null;
+	        }
+	    }
+
+	    // Create a media file name
+	    String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
+	    File mediaFile;
+	    
+	    //assume this is an image
+	    
+	    mediaFile = new File(mediaStorageDir.getPath() + File.separator +
+	        "IMG_"+ timeStamp + ".jpg");
+	    
+
+	    return mediaFile;
+	}
+	
+	private PictureCallback getPicCallback(){
+		if(mPicCallback == null){
+			mPicCallback = new PictureCallback() {
+
+			    @Override
+			    public void onPictureTaken(byte[] data, Camera camera) {
+
+			        File pictureFile = getOutputMediaFile();
+			        if (pictureFile == null){
+			            Log.d(TAG, "Error creating media file, check storage permissions: ");
+			            return;
+			        }
+
+			        try {
+			            FileOutputStream fos = new FileOutputStream(pictureFile);
+			            fos.write(data);
+			            fos.close();
+			            
+			            //force scan the SD Card so the images show up in Gallery
+			            sendBroadcast(new Intent(Intent.ACTION_MEDIA_MOUNTED, Uri.parse("file://"+ Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES))));
+			            /*
+			             potentially possibly better to use Media Scanner
+			             */
+			            
+			            
+			        } catch (FileNotFoundException e) {
+			            Log.d(TAG, "File not found: " + e.getMessage());
+			        } catch (IOException e) {
+			            Log.d(TAG, "Error accessing file: " + e.getMessage());
+			        }
+			    }
+			};
+		}
+		return mPicCallback;
+		
+	}
+	
 	@Override
 	protected void onStop()
 	{
@@ -55,6 +136,7 @@ public class MainActivity extends Activity {
 		mPreview = null;
 		mCamera = null;
 	}
+	
 	
 	private void releaseCameraAndPreview(){
 	//helper function to release Camera and Preview
@@ -115,9 +197,10 @@ public class MainActivity extends Activity {
 		
 	}
 	
-	public void snapPicture()
+	public void snapPicture(View v)
 	{
-		//
+		//shutterCallBack, PictureCallback,picturecallback,picturecallback)
+		mCamera.takePicture(null, null, mPicCallback);
 	}
 	
 	public void snapTimer(int seconds)

@@ -16,14 +16,22 @@
 
 	<LinearLayout
 	    android:layout_width="match_parent"
-	    android:layout_height="0dp"
-	    android:layout_weight="1" >
+	    android:layout_height="48dp"
+	    android:background="#7CB4D6"
+	    android:orientation="horizontal" >
 
 		<ImageButton
-		    android:id="@+id/shutter"
+		    android:id="@+id/imageButton1"
+		    android:layout_width="64px"
+		    android:layout_height="52px"
+		    android:background="@drawable/shutter"
+		    android:onClick="snapPicture" />
+
+		<ImageButton
+		    android:id="@+id/imageButton2"
 		    android:layout_width="wrap_content"
 		    android:layout_height="wrap_content"
-		    android:src="@drawable/shutter" />
+		    android:src="@drawable/switch_touchup" />
 
 	</LinearLayout>
 
