@@ -137,7 +137,6 @@ public class MainActivity extends Activity {
 		mCamera = null;
 	}
 	
-	
 	private void releaseCameraAndPreview(){
 	//helper function to release Camera and Preview
 		if(mPreview != null){
