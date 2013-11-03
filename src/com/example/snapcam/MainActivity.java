@@ -14,6 +14,8 @@ public class MainActivity extends Activity {
 	private Camera mCamera;
     private CameraPreview mPreview;
     private static final int cameraId = Camera.CameraInfo.CAMERA_FACING_BACK;
+    private SpeechRecognizer mSpeech;
+    private boolean listening = false;
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -41,9 +43,6 @@ public class MainActivity extends Activity {
         preview.addView(mPreview);			    
 	
 	    setCameraDisplayOrientation(this, cameraId, mCamera);
-	
-	    SpeechRecognizer r = new SpeechRecognizer(this);
-	    r.startRecognition();
 	}
 	
 	@Override
@@ -54,6 +53,16 @@ public class MainActivity extends Activity {
 		mCamera.release();
 		mPreview = null;
 		mCamera = null;
+	}
+	
+	private SpeechRecognizer GetSpeechRecognizer()
+	{
+		if (mSpeech == null)
+		{
+			mSpeech = new SpeechRecognizer(this);
+		}
+		
+		return mSpeech;
 	}
 	
 	private void releaseCameraAndPreview(){
@@ -74,7 +83,6 @@ public class MainActivity extends Activity {
 		setCameraDisplayOrientation(this, cameraId, mCamera);
 	}
 	
-
 	public void setCameraDisplayOrientation(Activity activity,
 	         int cameraId, android.hardware.Camera camera) {
 	     android.hardware.Camera.CameraInfo info =
@@ -102,17 +110,103 @@ public class MainActivity extends Activity {
 	
 	public void startListening()
 	{
-		//some comments here
+		listening = true;		
+	    SpeechRecognizer speech = GetSpeechRecognizer();
+	    speech.startRecognition();
+	}
+	
+	public void stopListening()
+	{
+		SpeechRecognizer speech = GetSpeechRecognizer();
+	    speech.stop();
+	    listening = false;
+	}
+	
+	public boolean parseResults(String res)
+	{
+		String result = res.toLowerCase().trim().replaceAll(" ", "");
+		
+		Commands com = null;
+		try{
+			com = Commands.valueOf(result);
+		}
+		catch(IllegalArgumentException e)
+		{
+			Log.w("Parsing", "Cannot evaluate " + res);
+			return false;
+		};
+		
+		switch (com)
+		{
+			case snap:
+			{
+				snapPicture();
+				break;
+			}
+			case flashon:
+			{
+				toggleFlash(true);
+				break;
+			}
+			case flashoff:
+			{
+				toggleFlash(false);
+				break;
+			}
+			case front:
+			{
+				toggleCamera(true);
+				break;
+			}
+			case back:
+			{
+				toggleCamera(false);
+				break;
+			}
+			case three:
+			case four:
+			case five:
+			case six:
+			case seven:
+			case eight:
+			case nine:
+			case ten:
+			{
+				snapTimer(com.getValue());
+				break;
+			}
+			default:
+			{
+				Log.e("Parsing", "shouldn't reach here");
+				return false;
+			}
+		}
+		
+		return true;
 	}
 	
 	public void onPartialResult(String res)
 	{
 		Log.d("result", res);
+		parseResults(res);
 	}
 	
 	public void onResult(String res)
 	{
-		
+		Log.d("result", res);
+		parseResults(res);
+	}
+	
+	public void onTap()
+	{
+		if (listening)
+		{
+			stopListening();
+		}
+		else
+		{
+			startListening();
+		}
 	}
 	
 	public void snapPicture()
@@ -122,7 +216,8 @@ public class MainActivity extends Activity {
 	
 	public void snapTimer(int seconds)
 	{
-		
+		// animate countdown
+		snapPicture();
 	}
 	
 	public void toggleFlash(boolean on)

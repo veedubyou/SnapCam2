@@ -1,0 +1,21 @@
+#JSGF V1.0;
+
+grammar dialog;
+
+<digit> = three |
+          four  |
+          five  |
+          six   |
+          seven |
+          eight |
+          nine |
+          ten ;
+
+<cam_command> =  snap | 
+                 <digit> | 
+                 flash on | 
+                 flash off | 
+                 front | 
+                 back;
+
+public <command> = <cam_command>;

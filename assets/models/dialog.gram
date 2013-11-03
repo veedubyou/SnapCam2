@@ -2,20 +2,16 @@
 
 grammar dialog;
 
-<digit> = three |
+<digit> = snap  |
+          ten   |
+          front |
+          back  |
+          three |
           four  |
           five  |
           six   |
           seven |
           eight |
-          nine |
-          ten ;
+          nine  ;
 
-<cam_command> =  snap | 
-                 <digit> | 
-                 flash on | 
-                 flash off | 
-                 front | 
-                 back;
-
-public <command> = <cam_command>;
+public <command> = <digit>;

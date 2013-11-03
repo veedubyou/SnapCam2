@@ -63,10 +63,10 @@ public class SpeechRecognizer {
         try {
             File modelsDir = syncAssets(context, "models");
 
-            //config.setString("-lm", joinPath(modelsDir, "lm/weather.lm"));
+            config.setString("-lm", joinPath(modelsDir, "lm/weather.lm"));
             config.setString("-jsgf", joinPath(modelsDir, "dialog.gram"));
-            //config.setString("-dict", joinPath(modelsDir, "lm/cmu07a.dic"));
-            config.setString("-hmm", joinPath(modelsDir, "acoustic"));
+            config.setString("-dict", joinPath(modelsDir, "lm/cmu07a.dic"));
+            config.setString("-hmm", joinPath(modelsDir, "hmm/hub4wsj_sc_8k"));
 
             config.setFloat("-samprate", SAMPLE_RATE);
             config.setInt("-maxhmmpf", 10000);
