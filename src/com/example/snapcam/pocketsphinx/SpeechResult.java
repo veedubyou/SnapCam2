@@ -1,4 +1,4 @@
-package com.example.snapcam;
+package com.example.snapcam.pocketsphinx;
 
 import edu.cmu.pocketsphinx.Decoder;
 import edu.cmu.pocketsphinx.Hypothesis;

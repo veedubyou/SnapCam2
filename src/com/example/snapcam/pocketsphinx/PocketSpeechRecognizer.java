@@ -1,10 +1,12 @@
-package com.example.snapcam;
+package com.example.snapcam.pocketsphinx;
 
 import static edu.cmu.pocketsphinx.SphinxUtil.syncAssets;
 import static edu.cmu.pocketsphinx.sphinxbase.setLogFile;
 
 import java.io.File;
 import java.io.IOException;
+
+import com.example.snapcam.MainActivity;
 
 import android.content.Context;
 import android.media.AudioFormat;
@@ -19,7 +21,7 @@ import edu.cmu.pocketsphinx.Config;
 import edu.cmu.pocketsphinx.Decoder;
 import edu.cmu.pocketsphinx.Hypothesis;
 
-public class SpeechRecognizer {
+public class PocketSpeechRecognizer {
 
     private static final int MSG_START = 1;
     private static final int MSG_STOP = 2;
@@ -28,7 +30,7 @@ public class SpeechRecognizer {
 
     private static final int SAMPLE_RATE = 8000;
 
-    private static SpeechRecognizer instance;
+    private static PocketSpeechRecognizer instance;
     
     static {
         System.loadLibrary("pocketsphinx_jni");
@@ -49,7 +51,7 @@ public class SpeechRecognizer {
     private final Handler listenerHandler = new Handler(Looper.getMainLooper());
     private MainActivity listener;
 
-    public SpeechRecognizer(MainActivity context) {
+    public PocketSpeechRecognizer(MainActivity context) {
         this.listener = context;
         
         recorder = new AudioRecord(MediaRecorder.AudioSource.VOICE_RECOGNITION,
@@ -86,7 +88,7 @@ public class SpeechRecognizer {
 
             @Override
             public boolean handleMessage(Message msg) {
-                return SpeechRecognizer.this.handleMessage(msg);
+                return PocketSpeechRecognizer.this.handleMessage(msg);
             }
         });
     }

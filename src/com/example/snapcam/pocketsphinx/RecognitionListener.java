@@ -1,4 +1,4 @@
-package com.example.snapcam;
+package com.example.snapcam.pocketsphinx;
 
 public interface RecognitionListener {
 
