@@ -55,19 +55,93 @@ public class MainActivity extends Activity {
 		K_STATE_PREVIEW
 	}*/
 	
+	//CAMERA PARAMETER KEYS
+	static final String FLASH_MODE = "flashMode";
+	
+	public void initializeCamera(){
+		mPicCallback = getPicCallback();
+		// Create an instance of Camera
+		mCamera = Camera.open(cameraId); // attempt to get a Camera instance
+	}
+	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
+	//creates the layout for the main activity
+	//onStart releases and creates the camera
 		super.onCreate(savedInstanceState);
+		Log.d(TAG,"onCreate");
 		setContentView(R.layout.activity_main);
 		
 		//Hide the status bar 
 		getWindow().addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
 		
+		
+		
+	}
+	
+	@Override
+	protected void onPause() {
+		// TODO Auto-generated method stub
+		super.onPause();
+		Log.d(TAG,"onPause");
+	}
+
+	@Override
+	protected void onRestart() {
+		// TODO Auto-generated method stub
+		super.onRestart();
+		Log.d(TAG,"onRestart");
+		
+		
+	}
+
+	@Override
+	protected void onRestoreInstanceState(Bundle savedInstanceState) {
+		// TODO Auto-generated method stub
+		super.onRestoreInstanceState(savedInstanceState);
+		Log.d(TAG,"onRestoreInstanceState");
+	}
+
+	@Override
+	protected void onSaveInstanceState(Bundle outState) {
+		// TODO Auto-generated method stub
+		super.onSaveInstanceState(outState);
+		Log.d(TAG,"onSaveInstanceState");
+		
+		Camera.Parameters paramters = mCamera.getParameters();
+		
+		//save camera parameters FLASH, FRONT/BACK CAMERA
+		outState.putString(FLASH_MODE, paramters.getFlashMode());
+		
+	}
+
+	@Override
+	protected void onStop()
+	{
+		Log.d(TAG,"onStop");
+		super.onStop();
+		mPreview.clearCamera();
+		mCamera.release();
+		mPreview = null;
+		mCamera = null;
+	}
+	
+	@Override
+	protected void onStart() {
+	//onStart is called every time our activity becomes visible
+	//the system keeps track of the View layout so it is not necessary for us to restore it
+	//onStart will handle releasing and creating the Camera
+		
+		super.onStart();
+		Log.d(TAG,"onStart");
+		
+		
+		
 		try{
 			releaseCameraAndPreview();
-			mPicCallback = getPicCallback();
-			// Create an instance of Camera
-			mCamera = Camera.open(cameraId); // attempt to get a Camera instance
+			initializeCamera();
+			setPreview(cameraId);
+		    createMic();
 	    }
 	    catch (Exception e){
 	        // TODO: return error message
@@ -75,14 +149,12 @@ public class MainActivity extends Activity {
 	    	e.printStackTrace();
 	    };
 
-	    setPreview(cameraId);
-
-	    createMic();
-	    
+	   	    
 	    mTimerHandler = new Handler();
 	    mPlayer = MediaPlayer.create(this, R.raw.cam_shutter);
+		
 	}
-	
+
 	private void setPreview(int cameraId)
 	{
         // Create our Preview view and set it as the content of our activity.
@@ -95,6 +167,18 @@ public class MainActivity extends Activity {
 	    setCameraDisplayOrientation(this, cameraId, mCamera);		
 	}
 	
+	private void releaseCameraAndPreview(){
+	//helper function to release Camera and Preview
+		if(mPreview != null){
+			mPreview.clearCamera();
+			mPreview = null;
+		}
+		if(mCamera != null){
+			mCamera.release();
+			mCamera=null;
+		}
+	}
+
 	private Runnable getTimer()
 	{
 		return new Runnable(){
@@ -216,16 +300,6 @@ public class MainActivity extends Activity {
 		return mPicCallback;
 	}
 	
-	@Override
-	protected void onStop()
-	{
-		super.onStop();
-		mPreview.clearCamera();
-		mCamera.release();
-		mPreview = null;
-		mCamera = null;
-	}
-	
 	private SpeechRecognizer GetSpeechRecognizer()
 	{
 		if (mSpeech == null)
@@ -246,18 +320,6 @@ public class MainActivity extends Activity {
 		}
 		
 		return msr;
-	}
-	
-	private void releaseCameraAndPreview(){
-	//helper function to release Camera and Preview
-		if(mPreview != null){
-			mPreview.clearCamera();
-			mPreview = null;
-		}
-		if(mCamera != null){
-			mCamera.release();
-			mCamera=null;
-		}
 	}
 	
 	public void onConfigurationChanged(Configuration newConfig)
