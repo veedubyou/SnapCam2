@@ -8,7 +8,9 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -21,6 +23,8 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
+import android.speech.RecognizerIntent;
+import android.speech.SpeechRecognizer;
 import android.util.Log;
 import android.util.TypedValue;
 import android.view.Gravity;
@@ -31,9 +35,6 @@ import android.view.animation.AlphaAnimation;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.TextView;
-import android.speech.RecognitionListener;
-import android.speech.RecognizerIntent;
-import android.speech.SpeechRecognizer;
 
 public class MainActivity extends Activity {
 	private Camera mCamera;
@@ -57,6 +58,8 @@ public class MainActivity extends Activity {
 	
 	//CAMERA PARAMETER KEYS
 	static final String FLASH_MODE = "flashMode";
+	SharedPreferences prefs;
+	
 	
 	public void initializeCamera(){
 		mPicCallback = getPicCallback();
@@ -70,13 +73,26 @@ public class MainActivity extends Activity {
 	//onStart releases and creates the camera
 		super.onCreate(savedInstanceState);
 		Log.d(TAG,"onCreate");
-		setContentView(R.layout.activity_main);
 		
-		//Hide the status bar 
-		getWindow().addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
+		if(savedInstanceState == null){
+			setContentView(R.layout.activity_main);
+			
+			//Hide the status bar 
+			getWindow().addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
+			prefs = this.getSharedPreferences("com.example.snapcam",Context.MODE_PRIVATE);
+		}
+
 		
 		
 		
+	}
+	
+	public void setPrefs(){
+	//set the camera preferences 
+		Camera.Parameters parameters = mCamera.getParameters();
+		String currFlash = prefs.getString(FLASH_MODE, Camera.Parameters.FLASH_MODE_OFF);
+		parameters.setFlashMode(currFlash);
+		mCamera.setParameters(parameters);
 	}
 	
 	@Override
@@ -84,6 +100,10 @@ public class MainActivity extends Activity {
 		// TODO Auto-generated method stub
 		super.onPause();
 		Log.d(TAG,"onPause");
+		
+		Camera.Parameters parameters = mCamera.getParameters();
+		String currFlash = parameters.getFlashMode();
+		prefs.edit().putString(FLASH_MODE, currFlash).commit();
 	}
 
 	@Override
@@ -97,22 +117,33 @@ public class MainActivity extends Activity {
 
 	@Override
 	protected void onRestoreInstanceState(Bundle savedInstanceState) {
-		// TODO Auto-generated method stub
+		// If this method is called, it is called before onStop. May or may not occur 
 		super.onRestoreInstanceState(savedInstanceState);
 		Log.d(TAG,"onRestoreInstanceState");
+		
+		Camera.Parameters parameters = mCamera.getParameters();
+		parameters.setFlashMode(savedInstanceState.getString(FLASH_MODE));
 	}
 
 	@Override
 	protected void onSaveInstanceState(Bundle outState) {
 		// TODO Auto-generated method stub
-		super.onSaveInstanceState(outState);
+		
 		Log.d(TAG,"onSaveInstanceState");
 		
-		Camera.Parameters paramters = mCamera.getParameters();
+		Camera.Parameters parameters = mCamera.getParameters();
 		
 		//save camera parameters FLASH, FRONT/BACK CAMERA
-		outState.putString(FLASH_MODE, paramters.getFlashMode());
+		outState.putString(FLASH_MODE, parameters.getFlashMode());
+		super.onSaveInstanceState(outState);
 		
+	}
+	
+	@Override
+	protected void onResume()
+	{
+		Log.d(TAG,"onResume");
+		super.onResume();
 	}
 
 	@Override
@@ -135,6 +166,7 @@ public class MainActivity extends Activity {
 		super.onStart();
 		Log.d(TAG,"onStart");
 		
+
 		
 		
 		try{
@@ -142,6 +174,7 @@ public class MainActivity extends Activity {
 			initializeCamera();
 			setPreview(cameraId);
 		    createMic();
+		    setPrefs();
 	    }
 	    catch (Exception e){
 	        // TODO: return error message
@@ -771,6 +804,7 @@ public class MainActivity extends Activity {
 	{
 		Camera.Parameters paramters = mCamera.getParameters();
 		toggleFlash(paramters.getFlashMode().equals(Camera.Parameters.FLASH_MODE_ON));
+		
 	}
 	
 	public void toggleFlash(boolean on)
@@ -779,10 +813,13 @@ public class MainActivity extends Activity {
 		if (on)
 		{
 			parameters.setFlashMode(Camera.Parameters.FLASH_MODE_ON);
+			
 		}
 		else
 		{
 			parameters.setFlashMode(Camera.Parameters.FLASH_MODE_OFF);
+			
+
 		}
 		
 		mCamera.setParameters(parameters);
