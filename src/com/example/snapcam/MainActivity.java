@@ -67,11 +67,11 @@ public class MainActivity extends Activity {
 	public int cameraFace;
 	
 	
-	public void initializeCamera(){
+	public void initializeCamera(int camID){
 		mPicCallback = getPicCallback();
 		// Create an instance of Camera
-		mCamera = Camera.open(cameraId); // attempt to get a Camera instance
-		cameraFace = cameraId;
+		mCamera = Camera.open(camID); // attempt to get a Camera instance
+		cameraFace = camID;
 	}
 	
 	@Override
@@ -100,6 +100,8 @@ public class MainActivity extends Activity {
 		String currFlash = prefs.getString(FLASH_MODE, Camera.Parameters.FLASH_MODE_OFF);
 		parameters.setFlashMode(currFlash);
 		mCamera.setParameters(parameters);
+		
+		
 	}
 	
 	@Override
@@ -111,6 +113,7 @@ public class MainActivity extends Activity {
 		Camera.Parameters parameters = mCamera.getParameters();
 		String currFlash = parameters.getFlashMode();
 		prefs.edit().putString(FLASH_MODE, currFlash).commit();
+		prefs.edit().putInt("FACING", cameraFace).commit();
 	}
 
 	@Override
@@ -178,9 +181,19 @@ public class MainActivity extends Activity {
 		
 		try{
 			releaseCameraAndPreview();
-			initializeCamera();
 			
-			setPreview(cameraId);
+			
+			int camFace = prefs.getInt("FACING", -1);
+			if(camFace == -1){
+				//we need to set the default camera
+				initializeCamera(cameraId);
+				setPreview(cameraId);
+			}
+			else{
+				initializeCamera(camFace);
+				setPreview(camFace);
+			}
+			
 		    createMic();
 		    setPrefs();
 		    
