@@ -318,8 +318,8 @@ public class MainActivity extends Activity {
 		                    
 		                    
 		                    
-		                    if(mInfo.facing == Camera.CameraInfo.CAMERA_FACING_FRONT){
-		                    	mtx.postRotate(90);
+		                    if(cameraFace == Camera.CameraInfo.CAMERA_FACING_FRONT){
+		                    	mtx.postRotate(-90);
 		                    }
 		                    else{
 		                    	mtx.postRotate(90);
