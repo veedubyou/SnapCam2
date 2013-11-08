@@ -17,7 +17,9 @@ import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.graphics.Matrix;
 import android.hardware.Camera;
+import android.hardware.Camera.CameraInfo;
 import android.hardware.Camera.PictureCallback;
+import android.hardware.SensorManager;
 import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Bundle;
@@ -28,6 +30,7 @@ import android.speech.SpeechRecognizer;
 import android.util.Log;
 import android.util.TypedValue;
 import android.view.Gravity;
+import android.view.OrientationEventListener;
 import android.view.Surface;
 import android.view.View;
 import android.view.WindowManager;
@@ -39,32 +42,36 @@ import android.widget.TextView;
 public class MainActivity extends Activity {
 	private Camera mCamera;
     private CameraPreview mPreview;
+    private Camera.Parameters mParameters;
+    CameraInfo mInfo;
+    
     private static final int cameraId = Camera.CameraInfo.CAMERA_FACING_BACK;
     private SpeechRecognizer mSpeech;
     private boolean listening = false;
     private boolean started = false;
+    private android.speech.SpeechRecognizer msr;
+	private RecognizerCallback listener;
+    
 	private PictureCallback mPicCallback = null;
+	
 	public final static String TAG = "MainActivity";
 	public final static boolean google = true;
-	private android.speech.SpeechRecognizer msr;
-	private RecognizerCallback listener;
+	
 	private TextView mTextView;
 	private Handler mTimerHandler;
 	private MediaPlayer mPlayer;
-	/*public enum CamStates {
-		K_STATE_FROZEN,
-		K_STATE_PREVIEW
-	}*/
 	
 	//CAMERA PARAMETER KEYS
 	static final String FLASH_MODE = "flashMode";
 	SharedPreferences prefs;
+	public int cameraFace;
 	
 	
 	public void initializeCamera(){
 		mPicCallback = getPicCallback();
 		// Create an instance of Camera
 		mCamera = Camera.open(cameraId); // attempt to get a Camera instance
+		cameraFace = cameraId;
 	}
 	
 	@Override
@@ -172,9 +179,14 @@ public class MainActivity extends Activity {
 		try{
 			releaseCameraAndPreview();
 			initializeCamera();
+			
 			setPreview(cameraId);
 		    createMic();
 		    setPrefs();
+		    
+		    mParameters = mCamera.getParameters();
+		    mInfo = new android.hardware.Camera.CameraInfo();
+		    //OrientationEventListener currOrientation= new OrientationEventListener(findViewById(R.id.camera_preview));
 	    }
 	    catch (Exception e){
 	        // TODO: return error message
@@ -289,7 +301,16 @@ public class MainActivity extends Activity {
 		                    int h = scaled.getHeight();
 		                    // Setting post rotate to 90
 		                    Matrix mtx = new Matrix();
-		                    mtx.postRotate(90);
+		                    
+		                    
+		                    
+		                    
+		                    if(mInfo.facing == Camera.CameraInfo.CAMERA_FACING_FRONT){
+		                    	mtx.postRotate(90);
+		                    }
+		                    else{
+		                    	mtx.postRotate(90);
+		                    }
 		                    // Rotating Bitmap
 		                    bm = Bitmap.createBitmap(scaled, 0, 0, w, h, mtx, true);
 		                }else{// LANDSCAPE MODE
@@ -377,13 +398,19 @@ public class MainActivity extends Activity {
 	     }
 
 	     int result;
+	     
+	     
 	     if (info.facing == Camera.CameraInfo.CAMERA_FACING_FRONT) {
 	         result = (info.orientation + degrees) % 360;
 	         result = (360 - result) % 360;  // compensate the mirror
+	         
 	     } else {  // back-facing
 	         result = (info.orientation - degrees + 360) % 360;
 	     }
 	     camera.setDisplayOrientation(result);
+	     
+	     
+	     
 	 }
 	
 	public void startListening()
@@ -835,8 +862,22 @@ public class MainActivity extends Activity {
 			releaseCameraAndPreview();
 			int cameraId = front ? Camera.CameraInfo.CAMERA_FACING_FRONT : Camera.CameraInfo.CAMERA_FACING_BACK;
 			mCamera = Camera.open(cameraId);
+			cameraFace = cameraId; //update camera face
 			setPreview(cameraId);
 			createMic();
+		}
+	}
+	
+	public void switchCam(View v){
+	//for click listener
+		//android.hardware.Camera.CameraInfo info =
+	             //new android.hardware.Camera.CameraInfo();
+		//android.hardware.Camera.getCameraInfo(cameraId, info);
+		if(cameraFace == Camera.CameraInfo.CAMERA_FACING_FRONT){
+			toggleCamera(false);
+		}
+		else{
+			toggleCamera(true);
 		}
 	}
 	
