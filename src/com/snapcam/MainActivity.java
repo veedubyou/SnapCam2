@@ -1,37 +1,24 @@
 package com.snapcam;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-
-import com.example.snapcam.R;
 
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.res.Configuration;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.graphics.Color;
-import android.graphics.Matrix;
 import android.hardware.Camera;
-import android.hardware.Camera.CameraInfo;
 import android.hardware.Camera.PictureCallback;
 import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Bundle;
-import android.os.Environment;
 import android.os.Handler;
 import android.speech.RecognizerIntent;
 import android.speech.SpeechRecognizer;
 import android.util.Log;
 import android.util.TypedValue;
 import android.view.Gravity;
-import android.view.Surface;
 import android.view.View;
 import android.view.WindowManager;
 import android.view.animation.AlphaAnimation;
@@ -39,12 +26,12 @@ import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.example.snapcam.R;
+
 public class MainActivity extends Activity {
 	private Camera mCamera = null;
 	private CameraPreview mPreview = null;
 	private CameraHelper mCameraHelper = null;
-	private SpeechRecognizer mSpeech = null;
-	private boolean listening = false;
 	private boolean started = false;
 	private SpeechRecognizer mSpeechRecognizer = null;
 	private RecognizerCallback mListener = null;
@@ -151,7 +138,6 @@ public class MainActivity extends Activity {
 		String currFlash = parameters.getFlashMode();
 		mPrefs.edit().putString(FLASH_MODE, currFlash).commit();
 		mPrefs.edit().putInt("FACING", mCameraHelper.cameraFace).commit();
-
 	}
 
 	@Override
