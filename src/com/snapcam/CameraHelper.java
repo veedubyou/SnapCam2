@@ -15,6 +15,7 @@ import android.graphics.BitmapFactory;
 import android.graphics.Matrix;
 import android.hardware.Camera;
 import android.hardware.Camera.PictureCallback;
+import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Environment;
 import android.util.Log;
@@ -29,6 +30,7 @@ public class CameraHelper {
 	private Camera mCamera = null;
 	private CameraPreview mPreview = null;
 	private PictureCallback mPicCallback = null;
+	private MediaPlayer mPlayer = null;	
 
 	// CAMERA PARAMETER KEYS
 
@@ -37,6 +39,7 @@ public class CameraHelper {
 
 	CameraHelper(MainActivity activity) {
 		mActivity = activity;
+		mPlayer = MediaPlayer.create(mActivity, R.raw.cam_shutter);		
 	}
 	
 	public void initializeCamera() {
@@ -128,7 +131,7 @@ public class CameraHelper {
 			mCamera = Camera.open(cameraId);
 			cameraFace = cameraId; // update camera face
 			createCameraPreview();
-			mActivity.createMic();
+			mActivity.mFeedbackHelper.createMic();
 		}
 	}
 
@@ -274,4 +277,52 @@ public class CameraHelper {
 			mCamera = null;
 		}
 	}
+	
+	public void snapPicture() {
+		mActivity.mFeedbackHelper.hideMic();
+		// addMic();
+		// switch(mPreviewState){
+		// case K_STATE_FROZEN:
+		// releaseCameraAndPreview();
+		// mCamera.startPreview();
+		// mPreviewState = K_STATE_PREVIEW;
+		// break;
+		// default:
+		// shutterCallBack, PictureCallback,picturecallback,picturecallback)
+		mPlayer.reset();
+		try {
+			mPlayer.setDataSource(
+					mActivity,
+					Uri.parse("android.resource://com.example.snapcam/"
+							+ R.raw.cam_shutter));
+		} catch (IllegalArgumentException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (SecurityException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IllegalStateException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		try {
+			mPlayer.prepare();
+		} catch (IllegalStateException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		mPlayer.start();
+		mCamera.takePicture(null, null, mPicCallback);
+		// mCamera.startPreview();
+		// mPreviewState = K_STATE_FROZEN;
+
+		// }
+
+	}	
 }
