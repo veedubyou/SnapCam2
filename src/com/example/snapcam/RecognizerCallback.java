@@ -4,11 +4,13 @@ import java.util.ArrayList;
 
 import android.os.Bundle;
 import android.speech.RecognitionListener;
+import android.util.Log;
 
 public class RecognizerCallback implements RecognitionListener {
 
 	boolean listening = false;
 	MainActivity activity;
+	public final static String TAG = "RecognizerActivity";
 	
 	public RecognizerCallback(MainActivity activity)
 	{
@@ -37,6 +39,7 @@ public class RecognizerCallback implements RecognitionListener {
 
 	@Override
 	public void onError(int error) {
+		Log.d(TAG, "onError: Call stopListening");
 		listening = false;
 		activity.onStopListening();
 		// TODO Auto-generated method stub
