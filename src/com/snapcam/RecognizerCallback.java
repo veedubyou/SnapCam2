@@ -1,4 +1,4 @@
-package com.example.snapcam;
+package com.snapcam;
 
 import java.util.ArrayList;
 

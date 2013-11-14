@@ -1,4 +1,4 @@
-package com.example.snapcam.pocketsphinx;
+package com.snapcam.pocketsphinx;
 
 import static edu.cmu.pocketsphinx.SphinxUtil.syncAssets;
 import static edu.cmu.pocketsphinx.sphinxbase.setLogFile;
@@ -6,7 +6,7 @@ import static edu.cmu.pocketsphinx.sphinxbase.setLogFile;
 import java.io.File;
 import java.io.IOException;
 
-import com.example.snapcam.MainActivity;
+import com.snapcam.MainActivity;
 
 import android.content.Context;
 import android.media.AudioFormat;

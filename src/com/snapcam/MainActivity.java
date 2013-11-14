@@ -1,4 +1,4 @@
-package com.example.snapcam;
+package com.snapcam;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -6,6 +6,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+
+import com.example.snapcam.R;
 
 import android.app.Activity;
 import android.content.Context;
@@ -19,7 +21,6 @@ import android.graphics.Matrix;
 import android.hardware.Camera;
 import android.hardware.Camera.CameraInfo;
 import android.hardware.Camera.PictureCallback;
-import android.hardware.SensorManager;
 import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Bundle;
@@ -30,7 +31,6 @@ import android.speech.SpeechRecognizer;
 import android.util.Log;
 import android.util.TypedValue;
 import android.view.Gravity;
-import android.view.OrientationEventListener;
 import android.view.Surface;
 import android.view.View;
 import android.view.WindowManager;
@@ -40,59 +40,35 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 public class MainActivity extends Activity {
-	private Camera mCamera;
-	private CameraPreview mPreview;
-	private Camera.Parameters mParameters;
-	CameraInfo mInfo;
-
-	private SpeechRecognizer mSpeech;
+	private Camera mCamera = null;
+	private CameraPreview mPreview = null;
+	private CameraHelper mCameraHelper = null;
+	private SpeechRecognizer mSpeech = null;
 	private boolean listening = false;
 	private boolean started = false;
-	private android.speech.SpeechRecognizer msr;
-	private RecognizerCallback listener;
+	private SpeechRecognizer mSpeechRecognizer = null;
+	private RecognizerCallback mListener = null;
 
 	private PictureCallback mPicCallback = null;
 
-	public final static String TAG = "MainActivity";
-	public final static boolean google = true;
+	private TextView mTextView = null;
+	private Handler mTimerHandler = null;
+	private MediaPlayer mPlayer = null;
 
-	private TextView mTextView;
-	private Handler mTimerHandler;
-	private MediaPlayer mPlayer;
+	public final static String TAG = "MainActivity";
+	public final static boolean USING_GOOGLE_SPEECH_API = true;
 
 	// DEFAULT SETTING VARIABLES
 	private static final int micId = 3333;
-	private static final int cameraId = Camera.CameraInfo.CAMERA_FACING_BACK;
-
-	// CAMERA PARAMETER KEYS
-	static final String FLASH_MODE = "flashMode";
-	SharedPreferences prefs;
-	public int cameraFace;
-
-	private boolean testVar = false;
-
-	public void initializeCamera(int camID) {
-		mPicCallback = getPicCallback();
-		// Create an instance of Camera
-		mCamera = Camera.open(camID); // attempt to get a Camera instance
-		cameraFace = camID;
-	}
-
-	public void setPrefs() {
-		// set the camera preferences
-		Camera.Parameters parameters = mCamera.getParameters();
-		String currFlash = prefs.getString(FLASH_MODE,
-				Camera.Parameters.FLASH_MODE_OFF);
-		parameters.setFlashMode(currFlash);
-		mCamera.setParameters(parameters);
-
-	}
+	
+	SharedPreferences mPrefs;	
+	
+	static final String FLASH_MODE = "flashMode";	
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		// creates the layout for the main activity
 		// onStart releases and creates the camera
-		this.testVar = true;
 		super.onCreate(savedInstanceState);
 		Log.d(TAG, "onCreate");
 
@@ -101,10 +77,60 @@ public class MainActivity extends Activity {
 
 			// Hide the status bar
 			getWindow().addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
-			prefs = this.getSharedPreferences("com.example.snapcam",
+			mPrefs = this.getSharedPreferences("com.example.snapcam",
 					Context.MODE_PRIVATE);
 		}
 
+	}
+
+	@Override
+	protected void onStart() {
+		// onStart is called every time our activity becomes visible
+		// the system keeps track of the View layout so it is not necessary for
+		// us to restore it
+		// onStart will handle releasing and creating the Camera
+
+		super.onStart();
+		Log.d(TAG, "onStart");
+
+		try {
+			mCameraHelper.releaseCameraAndPreview();
+
+			int camFace = mPrefs.getInt("FACING", -1);
+			if (camFace == -1) {
+				// we need to set the default camera
+				mCameraHelper.initializeCamera();
+			} else {
+				mCameraHelper.initializeCamera(camFace);
+			}
+
+			createMic();
+			setPrefs();
+		} catch (Exception e) {
+			// TODO: return error message
+			Log.d(TAG, "failed to open Camera");
+			Log.e(getString(R.string.app_name), "failed to open Camera");
+			e.printStackTrace();
+		}
+		
+		mTimerHandler = new Handler();
+		mPlayer = MediaPlayer.create(this, R.raw.cam_shutter);
+	}	
+
+	@Override
+	protected void onStop() {
+		Log.d(TAG, "onStop");
+		super.onStop();
+		mPreview.clearCamera();
+		mCamera.release();
+		mPreview = null;
+		mCamera = null;
+	}
+
+	@Override
+	protected void onResume() {
+		Log.d(TAG, "onResume");
+		super.onResume();
 	}
 
 	@Override
@@ -123,8 +149,8 @@ public class MainActivity extends Activity {
 
 		Camera.Parameters parameters = mCamera.getParameters();
 		String currFlash = parameters.getFlashMode();
-		prefs.edit().putString(FLASH_MODE, currFlash).commit();
-		prefs.edit().putInt("FACING", cameraFace).commit();
+		mPrefs.edit().putString(FLASH_MODE, currFlash).commit();
+		mPrefs.edit().putInt("FACING", mCameraHelper.cameraFace).commit();
 
 	}
 
@@ -133,13 +159,6 @@ public class MainActivity extends Activity {
 		// TODO Auto-generated method stub
 		super.onRestart();
 		Log.d(TAG, "onRestart");
-
-	}
-
-	@Override
-	protected void onDestroy() {
-		// TODO Auto-generated method stub
-		super.onDestroy();
 	}
 
 	@Override
@@ -167,87 +186,13 @@ public class MainActivity extends Activity {
 
 	}
 
-	@Override
-	protected void onResume() {
-		Log.d(TAG, "onResume");
-		super.onResume();
-	}
-
-	@Override
-	protected void onStop() {
-		Log.d(TAG, "onStop");
-		super.onStop();
-		mPreview.clearCamera();
-		mCamera.release();
-		mPreview = null;
-		mCamera = null;
-	}
-
-	@Override
-	protected void onStart() {
-		// onStart is called every time our activity becomes visible
-		// the system keeps track of the View layout so it is not necessary for
-		// us to restore it
-		// onStart will handle releasing and creating the Camera
-
-		super.onStart();
-		Log.d(TAG, "onStart");
-
-		try {
-			releaseCameraAndPreview();
-
-			int camFace = prefs.getInt("FACING", -1);
-			if (camFace == -1) {
-				// we need to set the default camera
-				initializeCamera(cameraId);
-				setPreview(cameraId);
-			} else {
-				initializeCamera(camFace);
-				setPreview(camFace);
-			}
-
-			createMic();
-
-			setPrefs();
-
-			mParameters = mCamera.getParameters();
-			mInfo = new android.hardware.Camera.CameraInfo();
-			// OrientationEventListener currOrientation= new
-			// OrientationEventListener(findViewById(R.id.camera_preview));
-		} catch (Exception e) {
-			// TODO: return error message
-			Log.d(TAG, "failed to open Camera");
-			Log.e(getString(R.string.app_name), "failed to open Camera");
-			e.printStackTrace();
-		}
-		;
-
-		mTimerHandler = new Handler();
-		mPlayer = MediaPlayer.create(this, R.raw.cam_shutter);
-
-	}
-
-	private void setPreview(int cameraId) {
-		// Create our Preview view and set it as the content of our activity.
-		mPreview = new CameraPreview(this, mCamera);
-
-		// CamStates mPreviewState = K_STATE_PREVIEW;
-		FrameLayout preview = (FrameLayout) findViewById(R.id.camera_preview);
-		preview.addView(mPreview);
-
-		setCameraDisplayOrientation(this, cameraId, mCamera);
-	}
-
-	private void releaseCameraAndPreview() {
-		// helper function to release Camera and Preview
-		if (mPreview != null) {
-			mPreview.clearCamera();
-			mPreview = null;
-		}
-		if (mCamera != null) {
-			mCamera.release();
-			mCamera = null;
-		}
+	public void setPrefs() {
+		// set the camera preferences
+		Camera.Parameters parameters = mCamera.getParameters();
+		String currFlash = mPrefs.getString(FLASH_MODE,
+				Camera.Parameters.FLASH_MODE_OFF);
+		parameters.setFlashMode(currFlash);
+		mCamera.setParameters(parameters);
 	}
 
 	private Runnable getTimer() {
@@ -272,201 +217,20 @@ public class MainActivity extends Activity {
 		};
 	}
 
-	/** Create a File for saving an image */
-	private static File getOutputMediaFile() {
-		// To be safe, you should check that the SDCard is mounted
-		// using Environment.getExternalStorageState() before doing this.
-
-		File mediaStorageDir = new File(
-				Environment
-						.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES),
-				"SnapCam");
-		// This location works best if you want the created images to be shared
-		// between applications and persist after your app has been uninstalled.
-
-		// Create the storage directory if it does not exist
-		if (!mediaStorageDir.exists()) {
-			if (!mediaStorageDir.mkdirs()) {
-				Log.d("MyCameraApp", "failed to create directory");
-				return null;
-			}
+	private android.speech.SpeechRecognizer GetSpeechRecognizer() {
+		if (mSpeechRecognizer == null) {
+			mSpeechRecognizer = SpeechRecognizer.createSpeechRecognizer(this);
+			mListener = new RecognizerCallback(this);
+			mSpeechRecognizer.setRecognitionListener(mListener);
 		}
 
-		// Create a media file name
-		String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss")
-				.format(new Date());
-		File mediaFile;
-
-		// assume this is an image
-
-		mediaFile = new File(mediaStorageDir.getPath() + File.separator
-				+ "IMG_" + timeStamp + ".jpg");
-
-		return mediaFile;
+		return mSpeechRecognizer;
 	}
 
-	private PictureCallback getPicCallback() {
-		if (mPicCallback == null) {
-			mPicCallback = new PictureCallback() {
-
-				@Override
-				public void onPictureTaken(byte[] data, Camera camera) {
-					if (data != null) {
-
-						// create a bitmap so we can rotate the image
-						int screenWidth = getResources().getDisplayMetrics().widthPixels;
-						int screenHeight = getResources().getDisplayMetrics().heightPixels;
-						Bitmap bm = BitmapFactory.decodeByteArray(data, 0,
-								(data != null) ? data.length : 0);
-
-						if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT) {
-							// Notice that width and height are reversed
-							Bitmap scaled = Bitmap.createScaledBitmap(bm,
-									screenHeight, screenWidth, true);
-							int w = scaled.getWidth();
-							int h = scaled.getHeight();
-							// Setting post rotate to 90
-							Matrix mtx = new Matrix();
-
-							if (cameraFace == Camera.CameraInfo.CAMERA_FACING_FRONT) {
-								mtx.postRotate(-90);
-							} else {
-								mtx.postRotate(90);
-							}
-							// Rotating Bitmap
-							bm = Bitmap.createBitmap(scaled, 0, 0, w, h, mtx,
-									true);
-						} else {// LANDSCAPE MODE
-								// No need to reverse width and height
-							Bitmap scaled = Bitmap.createScaledBitmap(bm,
-									screenWidth, screenHeight, true);
-							bm = scaled;
-						}
-
-						File pictureFile = getOutputMediaFile();
-						if (pictureFile == null) {
-							Log.d(TAG,
-									"Error creating media file, check storage permissions: ");
-							return;
-						}
-
-						try {
-							FileOutputStream fos = new FileOutputStream(
-									pictureFile);
-							// ByteArrayOutputStream
-							// outstudentstreamOutputStream = new
-							// ByteArrayOutputStream();
-							bm.compress(Bitmap.CompressFormat.PNG, 100, fos);
-							// fos.write(data);
-							fos.close();
-
-							mCamera.startPreview();
-
-							// force scan the SD Card so the images show up in
-							// Gallery
-							sendBroadcast(new Intent(
-									Intent.ACTION_MEDIA_MOUNTED,
-									Uri.parse("file://"
-											+ Environment
-													.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES))));
-							/*
-							 * potentially possibly better to use Media Scanner
-							 */
-
-						} catch (FileNotFoundException e) {
-							Log.d(TAG, "File not found: " + e.getMessage());
-						} catch (IOException e) {
-							Log.d(TAG,
-									"Error accessing file: " + e.getMessage());
-						}
-					}
-				}
-			};
-		}
-
-		return mPicCallback;
-	}
-
-	private SpeechRecognizer GetSpeechRecognizer() {
-		if (mSpeech == null) {
-			// mSpeech = new SpeechRecognizer(this);
-		}
-
-		return mSpeech;
-	}
-
-	private android.speech.SpeechRecognizer GetSR() {
-		if (msr == null) {
-			msr = SpeechRecognizer.createSpeechRecognizer(this);
-			listener = new RecognizerCallback(this);
-			msr.setRecognitionListener(listener);
-		}
-
-		return msr;
-	}
-
+	@Override
 	public void onConfigurationChanged(Configuration newConfig) {
 		super.onConfigurationChanged(newConfig);
-		setCameraDisplayOrientation(this, cameraId, mCamera);
-	}
-
-	public void setCameraDisplayOrientation(Activity activity, int cameraId,
-			android.hardware.Camera camera) {
-		android.hardware.Camera.CameraInfo info = new android.hardware.Camera.CameraInfo();
-		android.hardware.Camera.getCameraInfo(cameraId, info);
-		int rotation = activity.getWindowManager().getDefaultDisplay()
-				.getRotation();
-		int degrees = 0;
-		switch (rotation) {
-		case Surface.ROTATION_0:
-			degrees = 0;
-			break;
-		case Surface.ROTATION_90:
-			degrees = 90;
-			break;
-		case Surface.ROTATION_180:
-			degrees = 180;
-			break;
-		case Surface.ROTATION_270:
-			degrees = 270;
-			break;
-		}
-
-		int result;
-
-		if (info.facing == Camera.CameraInfo.CAMERA_FACING_FRONT) {
-			result = (info.orientation + degrees) % 360;
-			result = (360 - result) % 360; // compensate the mirror
-
-		} else { // back-facing
-			result = (info.orientation - degrees + 360) % 360;
-		}
-		camera.setDisplayOrientation(result);
-
-	}
-
-	public void startListening() {
-		if (!listening) {
-			listening = true;
-			SpeechRecognizer speech = GetSpeechRecognizer();
-			// speech.startRecognition();
-		}
-	}
-
-	public void stopListening() {
-		if (listening) {
-			SpeechRecognizer speech = GetSpeechRecognizer();
-			// speech.stop();
-			listening = false;
-			started = false;
-		}
-	}
-
-	public void restartListening() {
-		if (listening) {
-			SpeechRecognizer speech = GetSpeechRecognizer();
-			// speech.stop();
-		}
+		mCameraHelper.setCameraDisplayOrientation();
 	}
 
 	public boolean parseGoogleResults(String res) {
@@ -497,7 +261,7 @@ public class MainActivity extends Activity {
 		try {
 			com = Commands.valueOf(result);
 		} catch (IllegalArgumentException e) {
-			googleStart(GetSR());
+			googleStart(GetSpeechRecognizer());
 			showText("We heard \"" + res + "\", please try again");
 			Log.w("Parsing", "Cannot evaluate " + res);
 			return false;
@@ -510,27 +274,27 @@ public class MainActivity extends Activity {
 			break;
 		}
 		case flashon: {
-			toggleFlash(true);
+			mCameraHelper.toggleFlash(true);
 			showText("Flash on");
-			googleStart(GetSR());
+			googleStart(GetSpeechRecognizer());
 			break;
 		}
 		case flashoff: {
-			toggleFlash(false);
+			mCameraHelper.toggleFlash(false);
 			showText("Flash off");
-			googleStart(GetSR());
+			googleStart(GetSpeechRecognizer());
 			break;
 		}
 		case frontcamera: {
-			toggleCamera(true);
+			mCameraHelper.toggleCamera(true);
 			showText("Front camera");
-			googleStart(GetSR());
+			googleStart(GetSpeechRecognizer());
 			break;
 		}
 		case backcamera: {
-			toggleCamera(false);
+			mCameraHelper.toggleCamera(false);
 			showText("Back camera");
-			googleStart(GetSR());
+			googleStart(GetSpeechRecognizer());
 			break;
 		}
 		case threeseconds:
@@ -546,7 +310,6 @@ public class MainActivity extends Activity {
 		}
 		default: {
 			Log.e("Parsing", "shouldn't reach here");
-			stopListening();
 			return false;
 		}
 		}
@@ -592,24 +355,14 @@ public class MainActivity extends Activity {
 		// TODO add more intents
 		sr.startListening(intent);
 		Log.d("RecognizerActivity", "Call startListening");
-		listener.setListening(true);
+		mListener.setListening(true);
 	}
 
 	public void onTap() {
 
-		if (google) {
-			SpeechRecognizer sr = GetSR();
-			/*
-			 * if (listener.isListening()) { sr.cancel(); } else {
-			 */
+		if (USING_GOOGLE_SPEECH_API) {
+			SpeechRecognizer sr = GetSpeechRecognizer();
 			googleStart(sr);
-			// }
-		} else {
-			if (listening) {
-				stopListening();
-			} else {
-				startListening();
-			}
 		}
 	}
 
@@ -762,52 +515,6 @@ public class MainActivity extends Activity {
 		countDown(seconds);
 	}
 
-	public void toggleFlash() {
-		Camera.Parameters paramters = mCamera.getParameters();
-		toggleFlash(paramters.getFlashMode().equals(
-				Camera.Parameters.FLASH_MODE_ON));
-
-	}
-
-	public void toggleFlash(boolean on) {
-		Camera.Parameters parameters = mCamera.getParameters();
-		if (on) {
-			parameters.setFlashMode(Camera.Parameters.FLASH_MODE_ON);
-
-		} else {
-			parameters.setFlashMode(Camera.Parameters.FLASH_MODE_OFF);
-
-		}
-
-		mCamera.setParameters(parameters);
-	}
-
-	public void toggleCamera(boolean front) {
-		if (Camera.getNumberOfCameras() > 1) {
-			FrameLayout preview = (FrameLayout) findViewById(R.id.camera_preview);
-			preview.removeAllViews();
-			;
-			releaseCameraAndPreview();
-			int cameraId = front ? Camera.CameraInfo.CAMERA_FACING_FRONT
-					: Camera.CameraInfo.CAMERA_FACING_BACK;
-			mCamera = Camera.open(cameraId);
-			cameraFace = cameraId; // update camera face
-			setPreview(cameraId);
-			createMic();
-		}
-	}
-
-	public void switchCam(View v) {
-		// for click listener
-		// android.hardware.Camera.CameraInfo info =
-		// new android.hardware.Camera.CameraInfo();
-		// android.hardware.Camera.getCameraInfo(cameraId, info);
-		if (cameraFace == Camera.CameraInfo.CAMERA_FACING_FRONT) {
-			toggleCamera(false);
-		} else {
-			toggleCamera(true);
-		}
-	}
 
 	public void onListenStarted() {
 		started = true;

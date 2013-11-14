@@ -1,4 +1,4 @@
-package com.example.snapcam;
+package com.snapcam;
 
 public enum Commands {
 	snap(-1),
