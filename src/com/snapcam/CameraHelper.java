@@ -42,17 +42,20 @@ public class CameraHelper {
 		mPlayer = MediaPlayer.create(mActivity, R.raw.cam_shutter);		
 	}
 	
-	public void initializeCamera() {
+	public Camera initializeCamera() {
 		initializeCamera(cameraId);
+		return mCamera;
 	}
 
-	public void initializeCamera(int id) {
+	public Camera initializeCamera(int id) {
 		mPicCallback = getPicCallback();
 		// Create an instance of Camera
 		mCamera = Camera.open(id); // attempt to get a Camera instance
 		cameraFace = id;
 		
+		this.createCameraPreview();
 		mPreview.setCamera(mCamera);
+		return mCamera; //this is so the Main Activity will be able to modify the Camera
 	}
 
 	public void createCameraPreview() {
@@ -180,6 +183,18 @@ public class CameraHelper {
 
 		return mediaFile;
 	}
+	
+	public void setGalleryLink(String URI){
+	//required: given a URI - update the onClick listener to link to the correct gallery
+			
+		
+		//this should happen during creationg of the onClick Listener section
+		//if empty thumbnail, set URI to all images in SnapCam
+		
+		//if image, open URI to an individual image in Gallery app
+		
+		
+	}
 
 	private PictureCallback getPicCallback() {
 		if (mPicCallback == null) {
@@ -227,18 +242,33 @@ public class CameraHelper {
 									"Error creating media file, check storage permissions: ");
 							return;
 						}
+						
+						//get a thumbnail version of the bm -> does the bm object have a thumbnail version
+						//set width and height of thumbnail??
+						
+						//get imagebutton0 view so I can replace the resource and link it to the URI gallery 
+						
+						//in imagebutton0 view: replace the resource 
+						
+						//setGalleryLink(pictureFile);
+							//set the Gallery Link for onClick function
+							//in onCreate set the emptyThumbnail to launch gallery based on a URI
+							//attach an onClick listener which will launch to the gallery
+						
+						
 
 						try {
 							FileOutputStream fos = new FileOutputStream(
 									pictureFile);
-							// ByteArrayOutputStream
-							// outstudentstreamOutputStream = new
-							// ByteArrayOutputStream();
+							
+							
 							bm.compress(Bitmap.CompressFormat.PNG, 100, fos);
-							// fos.write(data);
 							fos.close();
 
 							mCamera.startPreview();
+							
+							
+							
 
 							// force scan the SD Card so the images show up in
 							// Gallery
@@ -251,6 +281,8 @@ public class CameraHelper {
 							/*
 							 * potentially possibly better to use Media Scanner
 							 */
+							
+							//Picture is in Gallery
 
 						} catch (FileNotFoundException e) {
 							Log.d("File", "File not found: " + e.getMessage());

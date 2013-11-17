@@ -1,17 +1,23 @@
 package com.snapcam;
 
+import java.io.File;
+
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.hardware.Camera;
+import android.net.Uri;
 import android.os.Bundle;
+import android.os.Environment;
 import android.speech.RecognizerIntent;
 import android.speech.SpeechRecognizer;
 import android.util.Log;
+import android.view.View;
 import android.view.WindowManager;
 import android.widget.FrameLayout;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 
 import com.example.snapcam.R;
@@ -30,6 +36,7 @@ public class MainActivity extends Activity {
 
 	// DEFAULT SETTING VARIABLES
 	static final int micId = 3333;
+	private static final String snapCamURL = ""; 
 	
 	SharedPreferences mPrefs;	
 	
@@ -72,14 +79,43 @@ public class MainActivity extends Activity {
 			int camFace = mPrefs.getInt("FACING", -1);
 			if (camFace == -1) {
 				// we need to set the default camera
-				mCameraHelper.initializeCamera();
+				mCamera = mCameraHelper.initializeCamera();
 			} else {
-				mCameraHelper.initializeCamera(camFace);
+				
+				mCamera = mCameraHelper.initializeCamera(camFace);
 			}
 
 			// TODO: wrong place to put this
 			mFeedbackHelper.createMic();
 			setPrefs();
+			
+			//adding all click listeners here
+			//GalleryLinkButton = 
+			final ImageButton galleryLink = (ImageButton) findViewById(R.id.imageButtonGallery);
+			galleryLink.setOnClickListener(new View.OnClickListener() {
+				@Override
+				public void onClick(View v){
+					String testFileName = "IMG_20131102_233253.jpg"; 
+					String testFilePath = "file://"
+							+ Environment
+							.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES) + "/"+ testFileName;
+					String testDirectory = "/sdcard/Pictures/SnapCam/";
+					String testDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES) + "/SnapCam/";
+					
+					launchGallery(testDir, testFileName);
+				}
+			});
+			
+			final ImageButton shutter = (ImageButton) findViewById(R.id.imageButtonShutter);
+			shutter.setOnClickListener(new View.OnClickListener() {
+				@Override
+				public void onClick(View v){
+					mCameraHelper.snapPicture();
+					
+					//mCameraHelper.launchGallery();
+				}
+			});
+			
 		} catch (Exception e) {
 			Log.d(TAG, "failed to open Camera");
 			Log.e(getString(R.string.app_name), "failed to open Camera");
@@ -87,6 +123,47 @@ public class MainActivity extends Activity {
 		}
 	}	
 
+	public void launchGallery(String path, String filename){
+		try{
+			/*
+			 
+			 
+			 if we are using the empty image
+			 	
+			 	//if we have an empty image, that should mean there is a SnapCam Folder
+			 	if the SnapCam folder does not exists{
+			 		create empty SnapCam folder
+			 	}
+			 	else
+			 		show SnapCam folder -- mm what if they have a snapCam folder that's not created by us
+			 		i guess we can dump it in that folder anyways
+			 else //we have the previous image
+			 	show the previous image in the gallery
+			 	
+			 
+			 
+			 */
+			
+			File file = new File(path, filename);
+			boolean fileExist = file.exists();
+			if(file.exists()){
+				String filePath = "file://"+path+filename;
+				
+				Intent intent = new Intent();
+				intent.setAction(Intent.ACTION_VIEW);
+				intent.setDataAndType(Uri.parse(filePath),"image/*");
+				startActivity(intent);
+			}
+			else{
+				//TODO: Add Message to user
+				Log.d(TAG,"File does not exist");
+			}
+		}
+		catch(Exception e){
+			Log.d(TAG,e.getMessage());
+		}
+	}
+	
 	@Override
 	protected void onStop() {
 		Log.d(TAG, "onStop");
