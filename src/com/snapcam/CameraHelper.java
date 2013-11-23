@@ -193,7 +193,7 @@ public class CameraHelper {
 		}
 	}
 
-	public void switchCam(View v) {
+	public void switchCam() {
 		// for click listener
 		// android.hardware.Camera.CameraInfo info =
 		// new android.hardware.Camera.CameraInfo();

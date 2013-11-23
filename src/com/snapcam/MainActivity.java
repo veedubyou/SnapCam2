@@ -116,7 +116,15 @@ public class MainActivity extends Activity {
 				public void onClick(View v){
 					mCameraHelper.snapPicture();
 					
-					//mCameraHelper.launchGallery();
+				}
+			});
+			
+			final ImageButton switchCam = (ImageButton) findViewById(R.id.imageButtonSwitch);
+			switchCam.setOnClickListener(new View.OnClickListener() {
+				@Override
+				public void onClick(View v){
+					mCameraHelper.switchCam();
+					
 				}
 			});
 			
