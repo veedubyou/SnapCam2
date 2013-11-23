@@ -9,6 +9,7 @@ import java.util.Date;
 
 import android.annotation.SuppressLint;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -31,15 +32,24 @@ public class CameraHelper {
 	private CameraPreview mPreview = null;
 	private PictureCallback mPicCallback = null;
 	private MediaPlayer mPlayer = null;	
-
+	private SharedPreferences mPrefs = null;
+	
 	// CAMERA PARAMETER KEYS
 
 	private static final int cameraId = Camera.CameraInfo.CAMERA_FACING_BACK;
 	public int cameraFace;
+	static final String FLASH_MODE = "flashMode";	
 
-	CameraHelper(MainActivity activity) {
+	CameraHelper(MainActivity activity, SharedPreferences prefs) {
 		mActivity = activity;
-		mPlayer = MediaPlayer.create(mActivity, R.raw.cam_shutter);		
+		mPrefs = prefs;
+		mPlayer = MediaPlayer.create(mActivity, R.raw.cam_shutter);
+		
+		//
+		this.initializeCamera();
+		this.createCameraPreview(); //previously started oncreate
+		mPreview.setCamera(mCamera);
+		
 	}
 	
 	public Camera initializeCamera() {
@@ -53,9 +63,22 @@ public class CameraHelper {
 		mCamera = Camera.open(id); // attempt to get a Camera instance
 		cameraFace = id;
 		
-		this.createCameraPreview();
-		mPreview.setCamera(mCamera);
+		//this.createCameraPreview();
+		//mPreview.setCamera(mCamera);
 		return mCamera; //this is so the Main Activity will be able to modify the Camera
+	}
+	
+	
+	public void startPreview(){
+		mPreview.restartPreview(mCamera);
+	}
+	
+	public void stopPreview(){
+		mCamera.stopPreview();
+	}
+	
+	public void setPreview(){
+		mPreview.setCamera(mCamera);
 	}
 
 	public void createCameraPreview() {
@@ -68,6 +91,38 @@ public class CameraHelper {
 		preview.addView(mPreview);
 
 		setCameraDisplayOrientation();
+	}
+	
+	public void removeCameraPreview(FrameLayout preview){
+		preview.removeView(mPreview); // should we remove this?
+	}
+
+	void releaseCameraAndPreview() {
+		// helper function to release Camera and Preview
+		if (mPreview != null) {
+			mPreview.clearCamera();
+			mPreview = null;
+		}
+		if (mCamera != null) {
+			mCamera.release();
+			mCamera = null;
+		}
+	}
+	
+	public void storePrefs(){
+		Camera.Parameters parameters = mCamera.getParameters();
+		String currFlash = parameters.getFlashMode();
+		mPrefs.edit().putString(FLASH_MODE, currFlash).commit();
+		mPrefs.edit().putInt("FACING", cameraFace).commit();
+	}
+	
+	public void setPrefs() {
+		// set the camera preferences
+		Camera.Parameters parameters = mCamera.getParameters();
+		String currFlash = mPrefs.getString(FLASH_MODE,
+				Camera.Parameters.FLASH_MODE_OFF);
+		parameters.setFlashMode(currFlash);
+		mCamera.setParameters(parameters);
 	}
 
 	public void setCameraDisplayOrientation() {
@@ -298,18 +353,6 @@ public class CameraHelper {
 		return mPicCallback;
 	}
 
-	void releaseCameraAndPreview() {
-		// helper function to release Camera and Preview
-		if (mPreview != null) {
-			mPreview.clearCamera();
-			mPreview = null;
-		}
-		if (mCamera != null) {
-			mCamera.release();
-			mCamera = null;
-		}
-	}
-	
 	public void snapPicture() {
 		mActivity.mFeedbackHelper.hideMic();
 		// addMic();

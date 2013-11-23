@@ -23,8 +23,6 @@ import android.widget.ImageView;
 import com.example.snapcam.R;
 
 public class MainActivity extends Activity {
-	private Camera mCamera = null;
-	private CameraPreview mPreview = null;
 	FeedbackHelper mFeedbackHelper = null;
 	CameraHelper mCameraHelper = null;
 	private boolean started = false;
@@ -40,8 +38,7 @@ public class MainActivity extends Activity {
 	
 	SharedPreferences mPrefs;	
 	
-	static final String FLASH_MODE = "flashMode";	
-
+	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		// creates the layout for the main activity
@@ -49,7 +46,6 @@ public class MainActivity extends Activity {
 		super.onCreate(savedInstanceState);
 		Log.d(TAG, "onCreate");
 
-		mCameraHelper = new CameraHelper(this);
 		mFeedbackHelper = new FeedbackHelper(this);
 		
 		if (savedInstanceState == null) {
@@ -60,6 +56,8 @@ public class MainActivity extends Activity {
 			mPrefs = this.getSharedPreferences("com.example.snapcam",
 					Context.MODE_PRIVATE);
 		}
+		
+		mCameraHelper = new CameraHelper(this, mPrefs);
 
 	}
 
@@ -79,15 +77,21 @@ public class MainActivity extends Activity {
 			int camFace = mPrefs.getInt("FACING", -1);
 			if (camFace == -1) {
 				// we need to set the default camera
-				mCamera = mCameraHelper.initializeCamera();
+				mCameraHelper.initializeCamera();
 			} else {
 				
-				mCamera = mCameraHelper.initializeCamera(camFace);
+				mCameraHelper.initializeCamera(camFace);
+				
+				
 			}
 
+			//
+			mCameraHelper.createCameraPreview();
+			mCameraHelper.startPreview();
+			
 			// TODO: wrong place to put this
 			mFeedbackHelper.createMic();
-			setPrefs();
+			mCameraHelper.setPrefs();
 			
 			//adding all click listeners here
 			//GalleryLinkButton = 
@@ -168,16 +172,27 @@ public class MainActivity extends Activity {
 	protected void onStop() {
 		Log.d(TAG, "onStop");
 		super.onStop();
-		mPreview.clearCamera();
-		mCamera.release();
-		mPreview = null;
-		mCamera = null;
+		FrameLayout preview = (FrameLayout) findViewById(R.id.camera_preview);
+		mCameraHelper.removeCameraPreview(preview);	
+		mCameraHelper.releaseCameraAndPreview();
 	}
 
 	@Override
 	protected void onResume() {
 		Log.d(TAG, "onResume");
 		super.onResume();
+		//This can come immediately after start if another app partially covers it
+		
+		mCameraHelper.startPreview();
+	}
+	
+	
+
+	@Override
+	protected void onDestroy() {
+		// TODO Auto-generated method stub
+		super.onDestroy();
+		Log.d(TAG,"onDestroy");
 	}
 
 	@Override
@@ -191,29 +206,29 @@ public class MainActivity extends Activity {
 		FrameLayout preview = (FrameLayout) findViewById(R.id.camera_preview);
 		ImageView image = (ImageView) findViewById(micId);
 		preview.removeView(image);
-		preview.removeView(mPreview); // should we remove this?
-
-		Camera.Parameters parameters = mCamera.getParameters();
-		String currFlash = parameters.getFlashMode();
-		mPrefs.edit().putString(FLASH_MODE, currFlash).commit();
-		mPrefs.edit().putInt("FACING", mCameraHelper.cameraFace).commit();
+		
+		//mCameraHelper.stopPreview();
+		//mCameraHelper.removeCameraPreview(preview);	
+		mCameraHelper.storePrefs();
 	}
 
 	@Override
 	protected void onRestart() {
 		super.onRestart();
 		Log.d(TAG, "onRestart");
+		
 	}
 
 	@Override
 	protected void onRestoreInstanceState(Bundle savedInstanceState) {
 		// If this method is called, it is called before onStop. May or may not
 		// occur
-		super.onRestoreInstanceState(savedInstanceState);
 		Log.d(TAG, "onRestoreInstanceState");
+		super.onRestoreInstanceState(savedInstanceState);
+		
 
-		Camera.Parameters parameters = mCamera.getParameters();
-		parameters.setFlashMode(savedInstanceState.getString(FLASH_MODE));
+		/*Camera.Parameters parameters = mCamera.getParameters();
+		parameters.setFlashMode(savedInstanceState.getString(FLASH_MODE));*/
 	}
 
 	@Override
@@ -221,22 +236,15 @@ public class MainActivity extends Activity {
 
 		Log.d(TAG, "onSaveInstanceState");
 
-		Camera.Parameters parameters = mCamera.getParameters();
+		/*Camera.Parameters parameters = mCamera.getParameters();
 
 		// save camera parameters FLASH, FRONT/BACK CAMERA
-		outState.putString(FLASH_MODE, parameters.getFlashMode());
+		outState.putString(FLASH_MODE, parameters.getFlashMode());*/
 		super.onSaveInstanceState(outState);
 
 	}
 
-	public void setPrefs() {
-		// set the camera preferences
-		Camera.Parameters parameters = mCamera.getParameters();
-		String currFlash = mPrefs.getString(FLASH_MODE,
-				Camera.Parameters.FLASH_MODE_OFF);
-		parameters.setFlashMode(currFlash);
-		mCamera.setParameters(parameters);
-	}
+	
 
 	private android.speech.SpeechRecognizer GetSpeechRecognizer() {
 		if (mSpeechRecognizer == null) {

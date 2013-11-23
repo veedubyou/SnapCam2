@@ -29,8 +29,15 @@ public class CameraPreview extends SurfaceView implements
 	}
 
 	public void clearCamera() {
-		mCamera.stopPreview();
+		if(mCamera != null)
+			mCamera.stopPreview();
 		mHolder.removeCallback(this);
+	}
+	
+	public void restartPreview(Camera camera){
+		mCamera = camera;
+		mCamera.startPreview();
+		mHolder.addCallback(this);
 	}
 
 	public void setCamera(Camera camera) {
