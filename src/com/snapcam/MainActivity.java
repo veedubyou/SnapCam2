@@ -7,7 +7,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.res.Configuration;
-import android.hardware.Camera;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
@@ -55,6 +56,15 @@ public class MainActivity extends Activity {
 			getWindow().addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
 			mPrefs = this.getSharedPreferences("com.example.snapcam",
 					Context.MODE_PRIVATE);
+			
+			//if there was a pic previously saved, get it and save it
+			String lastPicPath = mPrefs.getString("LAST_PIC_PATH",null);
+			if(lastPicPath != null){
+				Bitmap bm = BitmapFactory.decodeFile(lastPicPath);
+				ImageView image = (ImageView) findViewById(R.id.imageButtonGallery);
+				image.setImageBitmap(bm);
+				image.setScaleType(ImageView.ScaleType.CENTER_CROP);
+			}
 		}
 		
 		mCameraHelper = new CameraHelper(this, mPrefs);
@@ -99,14 +109,8 @@ public class MainActivity extends Activity {
 			galleryLink.setOnClickListener(new View.OnClickListener() {
 				@Override
 				public void onClick(View v){
-					String testFileName = "IMG_20131102_233253.jpg"; 
-					String testFilePath = "file://"
-							+ Environment
-							.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES) + "/"+ testFileName;
-					String testDirectory = "/sdcard/Pictures/SnapCam/";
-					String testDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES) + "/SnapCam/";
 					
-					launchGallery(testDir, testFileName);
+					mCameraHelper.launchGallery(mCameraHelper.getPrevPic());
 				}
 			});
 			
@@ -135,46 +139,7 @@ public class MainActivity extends Activity {
 		}
 	}	
 
-	public void launchGallery(String path, String filename){
-		try{
-			/*
-			 
-			 
-			 if we are using the empty image
-			 	
-			 	//if we have an empty image, that should mean there is a SnapCam Folder
-			 	if the SnapCam folder does not exists{
-			 		create empty SnapCam folder
-			 	}
-			 	else
-			 		show SnapCam folder -- mm what if they have a snapCam folder that's not created by us
-			 		i guess we can dump it in that folder anyways
-			 else //we have the previous image
-			 	show the previous image in the gallery
-			 	
-			 
-			 
-			 */
-			
-			File file = new File(path, filename);
-			boolean fileExist = file.exists();
-			if(file.exists()){
-				String filePath = "file://"+path+filename;
-				
-				Intent intent = new Intent();
-				intent.setAction(Intent.ACTION_VIEW);
-				intent.setDataAndType(Uri.parse(filePath),"image/*");
-				startActivity(intent);
-			}
-			else{
-				//TODO: Add Message to user
-				Log.d(TAG,"File does not exist");
-			}
-		}
-		catch(Exception e){
-			Log.d(TAG,e.getMessage());
-		}
-	}
+	
 	
 	@Override
 	protected void onStop() {
@@ -192,6 +157,10 @@ public class MainActivity extends Activity {
 		//This can come immediately after start if another app partially covers it
 		
 		mCameraHelper.startPreview();
+		ImageView image = (ImageView) findViewById(micId);
+		if(image == null){
+			mFeedbackHelper.createMic();
+		}
 	}
 	
 	

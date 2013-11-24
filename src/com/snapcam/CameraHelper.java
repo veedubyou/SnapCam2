@@ -21,8 +21,8 @@ import android.net.Uri;
 import android.os.Environment;
 import android.util.Log;
 import android.view.Surface;
-import android.view.View;
 import android.widget.FrameLayout;
+import android.widget.ImageView;
 
 import com.example.snapcam.R;
 
@@ -33,6 +33,13 @@ public class CameraHelper {
 	private PictureCallback mPicCallback = null;
 	private MediaPlayer mPlayer = null;	
 	private SharedPreferences mPrefs = null;
+	private String testFileName = "IMG_20131102_233253.jpg"; 
+	private String testFilePath = "file://"
+			+ Environment
+			.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES) + "/"+ testFileName;
+	private String lastPicPath = null;
+	private String galleryPath = testFilePath;
+	public final static String TAG = "CameraHelper";
 	
 	// CAMERA PARAMETER KEYS
 
@@ -114,6 +121,8 @@ public class CameraHelper {
 		String currFlash = parameters.getFlashMode();
 		mPrefs.edit().putString(FLASH_MODE, currFlash).commit();
 		mPrefs.edit().putInt("FACING", cameraFace).commit();
+		mPrefs.edit().putString("LAST_PIC_PATH", lastPicPath).commit();
+		//mPrefs.edit().commit();
 	}
 	
 	public void setPrefs() {
@@ -123,6 +132,9 @@ public class CameraHelper {
 				Camera.Parameters.FLASH_MODE_OFF);
 		parameters.setFlashMode(currFlash);
 		mCamera.setParameters(parameters);
+		
+
+		
 	}
 
 	public void setCameraDisplayOrientation() {
@@ -250,6 +262,22 @@ public class CameraHelper {
 		
 		
 	}
+	
+	public void setImgPreview(Bitmap bm){
+	//
+		if(bm == null){
+			Log.d(TAG, "Image was not created");
+		}
+		else{
+			ImageView image = (ImageView) mActivity.findViewById(R.id.imageButtonGallery);
+			image.setImageBitmap(bm);
+			image.setScaleType(ImageView.ScaleType.CENTER_CROP);
+		}
+	}
+	
+	public String getPrevPic(){
+		return lastPicPath;
+	}
 
 	private PictureCallback getPicCallback() {
 		if (mPicCallback == null) {
@@ -298,18 +326,7 @@ public class CameraHelper {
 							return;
 						}
 						
-						//get a thumbnail version of the bm -> does the bm object have a thumbnail version
-						//set width and height of thumbnail??
-						
-						//get imagebutton0 view so I can replace the resource and link it to the URI gallery 
-						
-						//in imagebutton0 view: replace the resource 
-						
-						//setGalleryLink(pictureFile);
-							//set the Gallery Link for onClick function
-							//in onCreate set the emptyThumbnail to launch gallery based on a URI
-							//attach an onClick listener which will launch to the gallery
-						
+												
 						
 
 						try {
@@ -318,8 +335,16 @@ public class CameraHelper {
 							
 							
 							bm.compress(Bitmap.CompressFormat.PNG, 100, fos);
+							setImgPreview(bm); //set the image to the gallery
+							
 							fos.close();
+							lastPicPath = pictureFile.getPath();
+							
+							//galleryPath = "file:/" + lastPicPath;
+							//galleryPath = "file://storage/emulated/0/Pictures/SnapCam/IMG_20131102_23325.jpg";
+							//launchGallery(lastPicPath);
 
+							
 							mCamera.startPreview();
 							
 							
@@ -351,6 +376,48 @@ public class CameraHelper {
 		}
 
 		return mPicCallback;
+	}
+	
+	public void launchGallery(String filepath){
+		try{
+			/*
+			 
+			 
+			 if we are using the empty image
+			 	
+			 	//if we have an empty image, that should mean there is a SnapCam Folder
+			 	if the SnapCam folder does not exists{
+			 		create empty SnapCam folder
+			 	}
+			 	else
+			 		show SnapCam folder -- mm what if they have a snapCam folder that's not created by us
+			 		i guess we can dump it in that folder anyways
+			 else //we have the previous image
+			 	show the previous image in the gallery
+			 	
+			 
+			 
+			 */
+			
+			//File file = new File(filepath);
+			File file = new File(filepath);
+			//boolean fileExist = file.exists();
+			if(file.exists()){
+				String URIFilepath = "file://"+filepath;
+				
+				Intent intent = new Intent();
+				intent.setAction(Intent.ACTION_VIEW);
+				intent.setDataAndType(Uri.parse(URIFilepath),"image/*");
+				mActivity.startActivity(intent);
+			}
+			else{
+				//TODO: Add Message to user
+				Log.d(TAG,filepath+" does not exist");
+			}
+		}
+		catch(Exception e){
+			Log.d(TAG,e.getMessage());
+		}
 	}
 
 	public void snapPicture() {

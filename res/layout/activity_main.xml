@@ -23,31 +23,44 @@
 	    android:orientation="horizontal" 
 	    android:layout_gravity="bottom" >
 
-		<ImageButton
-		    android:id="@+id/imageButton1"
-		    android:layout_width="78dp"
-		    android:layout_height="64dp"
-		    android:background="@drawable/shutter"
-		    android:onClick="snapPicture"
+	    <ImageButton
+		    android:id="@+id/imageButtonGallery"
+		    android:layout_width="46dp"
+		    android:layout_height="46dp"
+		    android:background="@drawable/blank_thumbnail"
 		    android:paddingTop="5dp"
 		    android:paddingBottom="5dp"
 		    android:layout_marginTop="4dp"
 		    android:layout_marginBottom="4dp"
-		    android:layout_marginLeft="69dp"
+		    android:layout_marginLeft="54dp"
 		    
 		    android:layout_marginRight="35dp"
 		     />
+	    
+		<ImageButton
+		    android:id="@+id/imageButtonShutter"
+		    android:layout_width="78dp"
+		    android:layout_height="64dp"
+		    android:background="@drawable/shutter"
+		    android:paddingTop="5dp"
+		    android:paddingBottom="5dp"
+		    android:layout_marginTop="4dp"
+		    android:layout_marginBottom="4dp"
+		    android:layout_marginLeft="27dp"
+		    
+		    android:layout_marginRight="27dp"
+		     />
 
 		<ImageButton
-		    android:id="@+id/imageButton2"
+		    android:id="@+id/imageButtonSwitch"
 		    android:layout_width="78dp"
 		    android:layout_height="64dp"
 		    android:layout_marginLeft="35dp"
-		    android:layout_marginRight="69dp"
+		    android:layout_marginRight="54dp"
 		    android:layout_marginTop="4dp"
 		    android:layout_marginBottom="4dp"
+		    android:scaleType="centerCrop"
 		    android:background="@drawable/switch_touchup"
-		    android:onClick="switchCam"
 		    android:paddingBottom="5dp"
 		    android:paddingTop="5dp" />
 

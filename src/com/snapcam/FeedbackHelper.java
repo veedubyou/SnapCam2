@@ -127,7 +127,7 @@ public class FeedbackHelper {
 			image.setVisibility(View.VISIBLE);
 	
 		} catch (Exception e) {
-			Log.d(MainActivity.TAG, "Failed to load img");
+			Log.d(MainActivity.TAG, "Failed to load img",e);
 	
 		}
 	}
@@ -138,7 +138,7 @@ public class FeedbackHelper {
 			image.setVisibility(View.INVISIBLE);
 	
 		} catch (Exception e) {
-			Log.d(MainActivity.TAG, "Failed to load img");
+			Log.d(MainActivity.TAG, "Failed to load img",e);
 	
 		}
 	
