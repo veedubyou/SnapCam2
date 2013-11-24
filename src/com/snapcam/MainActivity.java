@@ -110,7 +110,8 @@ public class MainActivity extends Activity {
 				@Override
 				public void onClick(View v){
 					
-					mCameraHelper.launchGallery(mCameraHelper.getPrevPic());
+					//mCameraHelper.launchGallery(mCameraHelper.getPrevPic());
+					mCameraHelper.launchGallery();
 				}
 			});
 			

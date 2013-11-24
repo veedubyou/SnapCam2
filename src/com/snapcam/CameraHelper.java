@@ -33,12 +33,8 @@ public class CameraHelper {
 	private PictureCallback mPicCallback = null;
 	private MediaPlayer mPlayer = null;	
 	private SharedPreferences mPrefs = null;
-	private String testFileName = "IMG_20131102_233253.jpg"; 
-	private String testFilePath = "file://"
-			+ Environment
-			.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES) + "/"+ testFileName;
+
 	private String lastPicPath = null;
-	private String galleryPath = testFilePath;
 	public final static String TAG = "CameraHelper";
 	
 	// CAMERA PARAMETER KEYS
@@ -50,12 +46,14 @@ public class CameraHelper {
 	CameraHelper(MainActivity activity, SharedPreferences prefs) {
 		mActivity = activity;
 		mPrefs = prefs;
+		lastPicPath = mPrefs.getString("LAST_PIC_PATH",null);
 		mPlayer = MediaPlayer.create(mActivity, R.raw.cam_shutter);
 		
 		//
 		this.initializeCamera();
 		this.createCameraPreview(); //previously started oncreate
 		mPreview.setCamera(mCamera);
+		
 		
 	}
 	
@@ -251,18 +249,6 @@ public class CameraHelper {
 		return mediaFile;
 	}
 	
-	public void setGalleryLink(String URI){
-	//required: given a URI - update the onClick listener to link to the correct gallery
-			
-		
-		//this should happen during creationg of the onClick Listener section
-		//if empty thumbnail, set URI to all images in SnapCam
-		
-		//if image, open URI to an individual image in Gallery app
-		
-		
-	}
-	
 	public void setImgPreview(Bitmap bm){
 	//
 		if(bm == null){
@@ -378,41 +364,28 @@ public class CameraHelper {
 		return mPicCallback;
 	}
 	
-	public void launchGallery(String filepath){
+	public void launchGallery(){
 		try{
-			/*
-			 
-			 
-			 if we are using the empty image
-			 	
-			 	//if we have an empty image, that should mean there is a SnapCam Folder
-			 	if the SnapCam folder does not exists{
-			 		create empty SnapCam folder
-			 	}
-			 	else
-			 		show SnapCam folder -- mm what if they have a snapCam folder that's not created by us
-			 		i guess we can dump it in that folder anyways
-			 else //we have the previous image
-			 	show the previous image in the gallery
-			 	
-			 
-			 
-			 */
 			
-			//File file = new File(filepath);
-			File file = new File(filepath);
-			//boolean fileExist = file.exists();
-			if(file.exists()){
-				String URIFilepath = "file://"+filepath;
-				
-				Intent intent = new Intent();
-				intent.setAction(Intent.ACTION_VIEW);
-				intent.setDataAndType(Uri.parse(URIFilepath),"image/*");
-				mActivity.startActivity(intent);
+			if(lastPicPath == null){
+				//create a toast notification that says you have no pics
+				Log.d(TAG,"no pictures have been take");
 			}
 			else{
-				//TODO: Add Message to user
-				Log.d(TAG,filepath+" does not exist");
+				File file = new File(lastPicPath);
+				//boolean fileExist = file.exists();
+				if(file.exists()){
+					String URIFilepath = "file://"+lastPicPath;
+					
+					Intent intent = new Intent();
+					intent.setAction(Intent.ACTION_VIEW);
+					intent.setDataAndType(Uri.parse(URIFilepath),"image/*");
+					mActivity.startActivity(intent);
+				}
+				else{
+					//TODO: Add Message to user
+					Log.d(TAG,lastPicPath+" does not exist");
+				}
 			}
 		}
 		catch(Exception e){
