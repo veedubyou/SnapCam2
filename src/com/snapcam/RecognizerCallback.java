@@ -69,7 +69,8 @@ public class RecognizerCallback implements RecognitionListener {
 		// TODO Auto-generated method stub
 		String str = new String();
         ArrayList<String> data = results.getStringArrayList(android.speech.SpeechRecognizer.RESULTS_RECOGNITION);
-        activity.parseGoogleResults(data.get(0));
+        
+        activity.parseGoogleResults(data);
 	}
 
 	@Override

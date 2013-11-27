@@ -1,6 +1,8 @@
 package com.snapcam;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.Iterator;
 
 import android.app.Activity;
 import android.content.Context;
@@ -257,88 +259,111 @@ public class MainActivity extends Activity {
 		mCameraHelper.setCameraDisplayOrientation();
 	}
 
-	public boolean parseGoogleResults(String res) {
+	public boolean parseGoogleResults(ArrayList<String> data) {
 		mFeedbackHelper.hideMic();
-		String result = res.toLowerCase().trim().replaceAll(" ", "");
+        
+		//String [] validCmds = {"snap","Front Camera","Back Camera", "Flash On", "Flash Off","3","4","5","6","7","8","9","10"};
+		Iterator dataIter = data.iterator();
+		String res = null;
+		String result = null;
 
-		if (result.contains("3")) {
-			result = result.replace("3", "three");
-		} else if (result.contains("4")) {
-			result = result.replace("4", "four");
-		} else if (result.contains("5")) {
-			result = result.replace("5", "five");
-		} else if (result.contains("6")) {
-			result = result.replace("6", "six");
-		} else if (result.contains("7")) {
-			result = result.replace("7", "seven");
-		} else if (result.contains("8")) {
-			result = result.replace("8", "eight");
-		} else if (result.contains("9")) {
-			result = result.replace("9", "nine");
-		} else if (result.contains("10")) {
-			result = result.replace("10", "ten");
-		}
+		
+		while(dataIter.hasNext()){
+			res = (String) dataIter.next();
+			Log.d(TAG, "word: " + res);
+			result = res.toLowerCase().trim().replaceAll(" ", "");
+			Log.d(TAG,"trim: " + result);
+			
+			if (result.contains("3")) {
+				result = result.replace("3", "three");
+			} else if (result.contains("4")) {
+				result = result.replace("4", "four");
+			} else if (result.contains("5")) {
+				result = result.replace("5", "five");
+			} else if (result.contains("6")) {
+				result = result.replace("6", "six");
+			} else if (result.contains("7")) {
+				result = result.replace("7", "seven");
+			} else if (result.contains("8")) {
+				result = result.replace("8", "eight");
+			} else if (result.contains("9")) {
+				result = result.replace("9", "nine");
+			} else if (result.contains("10")) {
+				result = result.replace("10", "ten");
+			}
 
-		Log.i("resulting string", result);
+			Log.i("resulting string", result);
 
-		Commands com = null;
-		try {
-			com = Commands.valueOf(result);
-		} catch (IllegalArgumentException e) {
-			googleStart(GetSpeechRecognizer());
-			mFeedbackHelper.showText("We heard \"" + res + "\", please try again");
-			Log.w("Parsing", "Cannot evaluate " + res);
-			return false;
-		}
-		;
+			
+			Commands com = null;
+			try {
+				com = Commands.valueOf(result);
+				
+				switch (com) {
+				case snap: {
+					mCameraHelper.snapPicture();
+					return true;
 
-		switch (com) {
-		case snap: {
-			mCameraHelper.snapPicture();
-			break;
-		}
-		case flashon: {
-			mCameraHelper.toggleFlash(true);
-			mFeedbackHelper.showText("Flash on");
-			googleStart(GetSpeechRecognizer());
-			break;
-		}
-		case flashoff: {
-			mCameraHelper.toggleFlash(false);
-			mFeedbackHelper.showText("Flash off");
-			googleStart(GetSpeechRecognizer());
-			break;
-		}
-		case frontcamera: {
-			mCameraHelper.toggleCamera(true);
-			mFeedbackHelper.showText("Front camera");
-			googleStart(GetSpeechRecognizer());
-			break;
-		}
-		case backcamera: {
-			mCameraHelper.toggleCamera(false);
-			mFeedbackHelper.showText("Back camera");
-			googleStart(GetSpeechRecognizer());
-			break;
-		}
-		case threeseconds:
-		case fourseconds:
-		case fiveseconds:
-		case sixseconds:
-		case sevenseconds:
-		case eightseconds:
-		case nineseconds:
-		case tenseconds: {
-			snapTimer(com.getValue());
-			break;
-		}
-		default: {
-			Log.e("Parsing", "shouldn't reach here");
-			return false;
-		}
-		}
+				}
+				case flashon: {
+					mCameraHelper.toggleFlash(true);
+					mFeedbackHelper.showText("Flash on");
+					googleStart(GetSpeechRecognizer());
+					return true;
 
-		return true;
+				}
+				case flashoff: {
+					mCameraHelper.toggleFlash(false);
+					mFeedbackHelper.showText("Flash off");
+					googleStart(GetSpeechRecognizer());
+					return true;
+
+				}
+				case frontcamera: {
+					mCameraHelper.toggleCamera(true);
+					mFeedbackHelper.showText("Front camera");
+					googleStart(GetSpeechRecognizer());
+					return true;
+			
+				}
+				case backcamera: {
+					mCameraHelper.toggleCamera(false);
+					mFeedbackHelper.showText("Back camera");
+					googleStart(GetSpeechRecognizer());
+					return true;
+
+				}
+				case threeseconds:
+				case fourseconds:
+				case fiveseconds:
+				case sixseconds:
+				case sevenseconds:
+				case eightseconds:
+				case nineseconds:
+				case tenseconds: {
+					snapTimer(com.getValue());
+					return true;
+
+				}
+				default: {
+					
+					//we don't have a match yet
+					}
+				}
+			} catch (IllegalArgumentException e) {
+				
+				//we don't know if we have a match yet
+						
+			} 
+		}//end of looping through results, we did not find a match
+		
+		
+		googleStart(GetSpeechRecognizer());
+		mFeedbackHelper.showText("We heard \"" + res + "\", please try again");
+		Log.w("Parsing", "Cannot evaluate " + res);
+
+		
+		return false;
 	}
 
 	/*
