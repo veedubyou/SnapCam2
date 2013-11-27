@@ -10,61 +10,166 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:layout_weight="1"
-    >
+       >
+       <LinearLayout
+           android:id="@+id/help_info"
+           android:layout_width="match_parent"
+           android:layout_height="wrap_content"
+           android:layout_marginTop="30dp"
+           android:orientation="vertical"
+           android:visibility="visible"
 
-		
+           
+       >
+
+           <TextView
+               android:id="@+id/helpHeader"
+               android:layout_width="wrap_content"
+               android:layout_height="wrap_content"
+               android:layout_marginBottom="35dp"
+               android:layout_marginLeft="10dp"
+               android:text="Tap Screen and Say" />
+
+           <TableLayout
+               android:layout_width="match_parent"
+               android:layout_height="match_parent"
+               android:layout_marginLeft="10dp"
+               android:layout_marginBottom="40dp"
+               android:stretchColumns="*" >
+               
+               <TableRow
+                   android:id="@+id/tableRow2"
+                   android:layout_width="match_parent"
+                   android:layout_height="wrap_content" 
+                   android:layout_marginBottom="20dp">
+                   		<TextView
+		               style="@style/cmd"
+		               android:id="@+id/textView1"
+		               android:layout_width="0dip"
+		               android:layout_height="wrap_content"
+		               android:layout_weight="1"
+		               android:text="Snap" 
+		               />
+               </TableRow>
+
+               <TableRow
+                   android:id="@+id/tableRow1"
+                   android:layout_width="match_parent"
+                   android:layout_height="wrap_content"
+                   android:layout_marginBottom="20dp"
+                    >
+                   
+                   <TextView
+                       style="@style/cmd"
+		               android:id="@+id/textView2"
+		               android:layout_weight="1"
+		               android:layout_width="0dip"
+		               android:layout_height="wrap_content"
+		               android:text="3 Seconds" />
+                   
+                   <TextView
+                       style="@style/options"
+		               android:id="@+id/textView3"
+		               android:layout_weight="1"
+		               android:layout_width="0dip"
+		               android:layout_height="wrap_content"
+		               android:text="3 to 10" />
+                   
+               </TableRow>
+                              <TableRow
+                   android:id="@+id/tableRow1"
+                   android:layout_width="match_parent"
+                   android:layout_height="wrap_content"
+                   android:layout_marginBottom="20dp"
+                    >
+                   
+                   <TextView
+                       style="@style/cmd"
+		               android:id="@+id/textView2"
+		               android:layout_weight="1"
+		               android:layout_width="0dip"
+		               android:layout_height="wrap_content"
+		               android:text="Front Camera" />
+                   
+                   <TextView
+                       style="@style/options"
+		               android:id="@+id/textView3"
+		               android:layout_weight="1"
+		               android:layout_width="0dip"
+		               android:layout_height="wrap_content"
+		               android:text="Front/Back" />
+                   
+               </TableRow>
+                              <TableRow
+                   android:id="@+id/tableRow1"
+                   android:layout_width="match_parent"
+                   android:layout_height="wrap_content"
+                    >
+                   
+                   <TextView
+                       style="@style/cmd"
+		               android:id="@+id/textView2"
+		               android:layout_weight="1"
+		               android:layout_width="0dip"
+		               android:layout_height="wrap_content"
+		               android:text="Flash On" />
+                   
+                   <TextView
+                       style="@style/options"
+		               android:id="@+id/textView3"
+		               android:layout_weight="1"
+		               android:layout_width="0dip"
+		               android:layout_height="wrap_content"
+		               android:text="On/Off" />
+                   
+               </TableRow>
+
+               
+
+
+           </TableLayout>
+
+       </LinearLayout>
 
 	</FrameLayout>
 
-	<LinearLayout
+	<RelativeLayout
 	    android:layout_width="match_parent"
-	    android:layout_height="72dp"
+	    android:layout_height="64dp"
 	    android:background="#7CB4D6"
 	    android:orientation="horizontal" 
 	    android:layout_gravity="bottom" >
+
 
 	    <ImageButton
 		    android:id="@+id/imageButtonGallery"
 		    android:layout_width="46dp"
 		    android:layout_height="46dp"
 		    android:background="@drawable/blank_thumbnail"
-		    android:paddingTop="5dp"
-		    android:paddingBottom="5dp"
-		    android:layout_marginTop="4dp"
-		    android:layout_marginBottom="4dp"
-		    android:layout_marginLeft="54dp"
-		    
-		    android:layout_marginRight="35dp"
+		    android:layout_toLeftOf="@+id/imageButtonShutter"
+		    android:layout_centerVertical="true"
+		    android:layout_marginRight="30dp"
 		     />
-	    
+
 		<ImageButton
 		    android:id="@+id/imageButtonShutter"
-		    android:layout_width="78dp"
-		    android:layout_height="64dp"
-		    android:background="@drawable/shutter"
-		    android:paddingTop="5dp"
-		    android:paddingBottom="5dp"
-		    android:layout_marginTop="4dp"
-		    android:layout_marginBottom="4dp"
-		    android:layout_marginLeft="27dp"
-		    
-		    android:layout_marginRight="27dp"
+		    android:layout_width="67dp"
+		    android:layout_height="55dp"
+		    android:background="@drawable/shutter_final"
+		    android:layout_centerInParent="true"
 		     />
 
 		<ImageButton
 		    android:id="@+id/imageButtonSwitch"
-		    android:layout_width="78dp"
-		    android:layout_height="64dp"
-		    android:layout_marginLeft="35dp"
-		    android:layout_marginRight="54dp"
-		    android:layout_marginTop="4dp"
-		    android:layout_marginBottom="4dp"
-		    android:scaleType="centerCrop"
-		    android:background="@drawable/switch_touchup"
-		    android:paddingBottom="5dp"
-		    android:paddingTop="5dp" />
+		    android:layout_width="59dp"
+		    android:layout_height="49dp"
+			android:background="@drawable/switch_touchup"
+			android:layout_toRightOf="@+id/imageButtonShutter"
+			android:layout_centerVertical="true"
+			android:layout_marginLeft="30dp"
+			/>
 
-	</LinearLayout>
+	</RelativeLayout>
 
 
 </FrameLayout>

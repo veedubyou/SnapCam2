@@ -1,9 +1,14 @@
 package com.snapcam;
 
+import android.content.SharedPreferences;
+import android.content.res.Resources;
 import android.graphics.Color;
+import android.graphics.Typeface;
 import android.os.Handler;
+import android.util.DisplayMetrics;
 import android.util.Log;
 import android.util.TypedValue;
+import android.view.Display;
 import android.view.Gravity;
 import android.view.View;
 import android.view.animation.AlphaAnimation;
@@ -19,13 +24,72 @@ import com.example.snapcam.R.id;
 public class FeedbackHelper {
 	private MainActivity mActivity = null;
 	private TextView mTextView = null;
-	private Handler mTimerHandler = null;	
+	private Handler mTimerHandler = null;
 	
-	FeedbackHelper (MainActivity activity ){
+	private SharedPreferences mPrefs = null;
+	private Typeface mFont = null;
+	
+	public final static String TAG = "FeedbackHelper";
+	
+	FeedbackHelper (MainActivity activity, SharedPreferences prefs ){
 		mActivity = activity;
 		mTimerHandler = new Handler();
+		mPrefs = prefs;
+		mFont = Typeface.createFromAsset(mActivity.getAssets(), "RockSalt.ttf");
+	}
+	
+	public void showHelpText(String str){
+		final TextView helpTextView = new TextView(mActivity);
+		helpTextView.setText(str);
+		
+		View frameView = mActivity.findViewById(R.id.camera_preview);
+		((FrameLayout) frameView).addView(helpTextView);
+		
+		helpTextView.setBackgroundResource(R.color.white_light);
+		//helpTextView.setGravity(Gravity.CENTER_HORIZONTAL);
+		Display display = mActivity.getWindowManager().getDefaultDisplay();
+		Resources resources = mActivity.getResources();
+
+		
+		helpTextView.setGravity(Gravity.CENTER_VERTICAL | Gravity.CENTER_HORIZONTAL);
+		
+		
+		helpTextView.setTextAppearance(mActivity.getApplicationContext(), R.style.help);
+		helpTextView.setTypeface(mFont);
+		
+		
+		//attach a click handler to light dismiss
+		helpTextView.setOnClickListener(new View.OnClickListener() {
+			@Override
+			public void onClick(View v){
+
+				
+				FeedbackHelper.this.removeText(helpTextView);
+				mPrefs.edit().putBoolean("IS_FIRST_LAUNCH", false).commit();
+				
+			}
+		});
 	}
 
+	
+	public void showVoiceMenu(){
+	//show the voice commands menu
+		View helpMenu = mActivity.findViewById(R.id.help_info);
+		//helpMenu.bringToFront();
+		
+		//change font for header
+		TextView helpHeader = (TextView) mActivity.findViewById(R.id.helpHeader);
+		mFont = Typeface.createFromAsset(mActivity.getAssets(), "RockSalt.ttf");
+		helpHeader.setTextAppearance(mActivity.getApplicationContext(), R.style.help);
+		helpHeader.setTypeface(mFont);
+		
+		
+		View frameView = mActivity.findViewById(R.id.camera_preview);
+		((FrameLayout) frameView).removeView(helpMenu);
+		((FrameLayout) frameView).addView(helpMenu);
+		//helpMenu.bringToFront();
+	}
+	
 	public void countDown(int value) {
 		mTextView = new TextView(mActivity);
 
@@ -61,16 +125,16 @@ public class FeedbackHelper {
 		mTimerHandler.postDelayed(new Runnable() {
 			@Override
 			public void run() {
-				removeText();
+				removeText(mTextView);
 			}
 		}, 2000);
 	}
 
-	public void removeText() {
-		if (mTextView != null) {
+	public void removeText(TextView aTextView) {
+		if (aTextView != null) {
 			View frameView = mActivity.findViewById(R.id.camera_preview);
-			((FrameLayout) frameView).removeView(mTextView);
-			mTextView = null;
+			((FrameLayout) frameView).removeView(aTextView);
+			aTextView = null;
 		}
 	}
 	
@@ -90,7 +154,7 @@ public class FeedbackHelper {
 				} else {
 					mTimerHandler.removeCallbacks(this);
 					mActivity.mCameraHelper.snapPicture();
-					removeText();
+					removeText(mTextView);
 				}
 			}
 		};

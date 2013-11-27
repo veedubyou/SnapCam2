@@ -29,6 +29,7 @@ public class MainActivity extends Activity {
 	private boolean started = false;
 	private SpeechRecognizer mSpeechRecognizer = null;
 	private RecognizerCallback mListener = null;
+	
 
 	public final static String TAG = "MainActivity";
 	public final static boolean USING_GOOGLE_SPEECH_API = true;
@@ -36,6 +37,7 @@ public class MainActivity extends Activity {
 	// DEFAULT SETTING VARIABLES
 	static final int micId = 3333;
 	private static final String snapCamURL = ""; 
+	public boolean isFirstLaunch = true;
 	
 	SharedPreferences mPrefs;	
 	
@@ -47,15 +49,19 @@ public class MainActivity extends Activity {
 		super.onCreate(savedInstanceState);
 		Log.d(TAG, "onCreate");
 
-		mFeedbackHelper = new FeedbackHelper(this);
+		
 		
 		if (savedInstanceState == null) {
 			setContentView(R.layout.activity_main);
 
 			// Hide the status bar
 			getWindow().addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
+			
 			mPrefs = this.getSharedPreferences("com.example.snapcam",
 					Context.MODE_PRIVATE);
+			mFeedbackHelper = new FeedbackHelper(this, mPrefs);
+			
+			
 			
 			//if there was a pic previously saved, get it and save it
 			String lastPicPath = mPrefs.getString("LAST_PIC_PATH",null);
@@ -100,7 +106,18 @@ public class MainActivity extends Activity {
 			mCameraHelper.startPreview();
 			
 			// TODO: wrong place to put this
+			
+			//if this is the first time the user launches the app, show initial help text
+			isFirstLaunch = mPrefs.getBoolean("IS_FIRST_LAUNCH", true);
+			if(isFirstLaunch){
+				mFeedbackHelper.showHelpText("Tap Screen \nSay Help");
+			}
+
+			
 			mFeedbackHelper.createMic();
+			
+			//mFeedbackHelper.showVoiceMenu();
+			
 			mCameraHelper.setPrefs();
 			
 			//adding all click listeners here
