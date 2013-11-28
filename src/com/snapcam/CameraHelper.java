@@ -33,6 +33,7 @@ public class CameraHelper {
 	private PictureCallback mPicCallback = null;
 	private MediaPlayer mPlayer = null;	
 	private SharedPreferences mPrefs = null;
+	private Bitmap mBM = null;
 
 	private String lastPicPath = null;
 	public final static String TAG = "CameraHelper";
@@ -271,8 +272,13 @@ public class CameraHelper {
 
 				@Override
 				public void onPictureTaken(byte[] data, Camera camera) {
+					
+					
 					if (data != null) {
 
+						
+						
+						
 						// create a bitmap so we can rotate the image
 						int screenWidth = mActivity.getResources()
 								.getDisplayMetrics().widthPixels;
@@ -321,7 +327,14 @@ public class CameraHelper {
 							
 							
 							bm.compress(Bitmap.CompressFormat.PNG, 100, fos);
+							
 							setImgPreview(bm); //set the image to the gallery
+							
+							//remove the old thumbnail image
+							if(mBM != null){
+								mBM.recycle();
+							}
+							mBM = bm;
 							
 							fos.close();
 							lastPicPath = pictureFile.getPath();

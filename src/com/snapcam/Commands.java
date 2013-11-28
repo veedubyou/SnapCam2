@@ -6,6 +6,7 @@ public enum Commands {
 	flashoff(-1),
 	frontcamera(-1),
 	backcamera(-1),
+	help(-1),
 	threeseconds(3),
 	fourseconds(4),
 	fiveseconds(5),

@@ -14,6 +14,7 @@ import android.view.View;
 import android.view.animation.AlphaAnimation;
 import android.widget.FrameLayout;
 import android.widget.FrameLayout.LayoutParams;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -28,6 +29,7 @@ public class FeedbackHelper {
 	
 	private SharedPreferences mPrefs = null;
 	private Typeface mFont = null;
+	boolean isVoiceMenuOn = false;
 	
 	public final static String TAG = "FeedbackHelper";
 	
@@ -71,11 +73,18 @@ public class FeedbackHelper {
 		});
 	}
 
+	public void hideVoiceMenu(){
+		final View voiceMenu = mActivity.findViewById(R.id.voice_menu);
+		voiceMenu.setVisibility(View.INVISIBLE);
+		isVoiceMenuOn = false;
+	}
 	
-	public void showVoiceMenu(){
+	public void createVoiceMenu(){
 	//show the voice commands menu
 		View helpMenu = mActivity.findViewById(R.id.help_info);
-		//helpMenu.bringToFront();
+		final View voiceMenu = mActivity.findViewById(R.id.voice_menu);
+		voiceMenu.setVisibility(View.INVISIBLE);
+		
 		
 		//change font for header
 		TextView helpHeader = (TextView) mActivity.findViewById(R.id.helpHeader);
@@ -83,11 +92,25 @@ public class FeedbackHelper {
 		helpHeader.setTextAppearance(mActivity.getApplicationContext(), R.style.help);
 		helpHeader.setTypeface(mFont);
 		
+		final ImageButton close = (ImageButton) mActivity.findViewById(R.id.imageButtonClose);
+		close.setOnClickListener(new View.OnClickListener() {
+			@Override
+			public void onClick(View v){
+				
+				hideVoiceMenu();
+			}
+		});
+		
 		
 		View frameView = mActivity.findViewById(R.id.camera_preview);
-		((FrameLayout) frameView).removeView(helpMenu);
-		((FrameLayout) frameView).addView(helpMenu);
-		//helpMenu.bringToFront();
+		((FrameLayout) frameView).removeView(voiceMenu);
+		((FrameLayout) frameView).addView(voiceMenu);
+	}
+	
+	public void showVoiceMenu(){
+		View voiceMenu = mActivity.findViewById(R.id.voice_menu);
+		voiceMenu.setVisibility(View.VISIBLE);
+		isVoiceMenuOn = true;
 	}
 	
 	public void countDown(int value) {
@@ -181,6 +204,46 @@ public class FeedbackHelper {
 		((FrameLayout) frameView).addView(image);
 	
 		hideMic();
+	}
+	
+	public void createQuestion() {
+		// assume that the Main Activity will check if the ImageView already
+		// exists
+	
+		View frameView = mActivity.findViewById(id.camera_preview);
+		int imgID = drawable.question;
+		
+		ImageButton img = new ImageButton(mActivity.getApplicationContext());
+		img.setBackgroundResource(imgID);
+		//ImageView image = new ImageView(mActivity.getApplicationContext());
+	
+
+		//image.setImageResource(imgID);
+	
+		LayoutParams layoutParams = new LayoutParams(
+				96, 80);
+		layoutParams.gravity = Gravity.BOTTOM | Gravity.RIGHT;
+		//layoutParams.gravity = Gravity.RIGHT;
+		layoutParams.bottomMargin = 150;
+		img.setLayoutParams(layoutParams);
+		
+		img.setOnClickListener(new View.OnClickListener() {
+			@Override
+			public void onClick(View v){
+				if(isVoiceMenuOn == false){
+					showVoiceMenu();
+
+				}
+				else{
+					hideVoiceMenu();
+
+				}
+				
+			}
+		});
+	
+		((FrameLayout) frameView).addView(img);
+	
 	}
 
 	public void showMic() {

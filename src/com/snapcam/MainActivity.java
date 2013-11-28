@@ -5,23 +5,31 @@ import java.util.ArrayList;
 import java.util.Iterator;
 
 import android.app.Activity;
+import android.content.BroadcastReceiver;
+
+//import android.support.v4.content.LocalBroadcastManager;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.net.ConnectivityManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.speech.RecognizerIntent;
 import android.speech.SpeechRecognizer;
+import android.telephony.PhoneStateListener;
+import android.telephony.TelephonyManager;
 import android.util.Log;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.Toast;
 
 import com.example.snapcam.R;
 
@@ -50,6 +58,11 @@ public class MainActivity extends Activity {
 		// onStart releases and creates the camera
 		super.onCreate(savedInstanceState);
 		Log.d(TAG, "onCreate");
+		
+		
+		
+				
+		
 
 		
 		
@@ -117,8 +130,8 @@ public class MainActivity extends Activity {
 
 			
 			mFeedbackHelper.createMic();
-			
-			//mFeedbackHelper.showVoiceMenu();
+			mFeedbackHelper.createQuestion();
+			mFeedbackHelper.createVoiceMenu();
 			
 			mCameraHelper.setPrefs();
 			
@@ -290,6 +303,8 @@ public class MainActivity extends Activity {
 				result = result.replace("9", "nine");
 			} else if (result.contains("10")) {
 				result = result.replace("10", "ten");
+			} else if(result.contains("snap")){
+				result = "snap";
 			}
 
 			Log.i("resulting string", result);
@@ -304,6 +319,11 @@ public class MainActivity extends Activity {
 					mCameraHelper.snapPicture();
 					return true;
 
+				}
+				case help:{
+					mFeedbackHelper.showVoiceMenu();
+					googleStart(GetSpeechRecognizer());
+					return true;
 				}
 				case flashon: {
 					mCameraHelper.toggleFlash(true);
@@ -401,6 +421,10 @@ public class MainActivity extends Activity {
 	public void googleStart(SpeechRecognizer sr) {
 		mFeedbackHelper.showMic();
 		Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
+		
+		//seems to be ignored
+		//intent.putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_MINIMUM_LENGTH_MILLIS, new Long(10000)); 
+		
 		// TODO add more intents
 		sr.startListening(intent);
 		Log.d("RecognizerActivity", "Call startListening");
@@ -410,7 +434,14 @@ public class MainActivity extends Activity {
 	public void onTap() {
 		if (USING_GOOGLE_SPEECH_API) {
 			SpeechRecognizer sr = GetSpeechRecognizer();
-			googleStart(sr);
+			//turn off if the user taps again and we are on
+			if(mListener.isListening()){
+				mFeedbackHelper.hideMic();
+				sr.stopListening();
+			}
+			else{
+				googleStart(sr);
+			}
 		}
 	}
 
