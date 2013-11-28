@@ -92,14 +92,14 @@ public class FeedbackHelper {
 		helpHeader.setTextAppearance(mActivity.getApplicationContext(), R.style.help);
 		helpHeader.setTypeface(mFont);
 		
-		final ImageButton close = (ImageButton) mActivity.findViewById(R.id.imageButtonClose);
+		/*final ImageButton close = (ImageButton) mActivity.findViewById(R.id.imageButtonClose);
 		close.setOnClickListener(new View.OnClickListener() {
 			@Override
 			public void onClick(View v){
 				
 				hideVoiceMenu();
 			}
-		});
+		});*/
 		
 		
 		View frameView = mActivity.findViewById(R.id.camera_preview);
@@ -225,6 +225,7 @@ public class FeedbackHelper {
 		layoutParams.gravity = Gravity.BOTTOM | Gravity.RIGHT;
 		//layoutParams.gravity = Gravity.RIGHT;
 		layoutParams.bottomMargin = 150;
+		layoutParams.rightMargin = 20;
 		img.setLayoutParams(layoutParams);
 		
 		img.setOnClickListener(new View.OnClickListener() {
