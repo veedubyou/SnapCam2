@@ -10,12 +10,14 @@ import android.util.Log;
 import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
+import android.widget.FrameLayout.LayoutParams;
 
 public class CameraPreview extends SurfaceView implements
 		SurfaceHolder.Callback {
 	private SurfaceHolder mHolder;
 	private Camera mCamera;
 	private MainActivity mainActivity;
+	public final static String TAG = "CameraPreview";
 
 	public CameraPreview(MainActivity context, Camera camera) {
 		super(context);
@@ -49,6 +51,19 @@ public class CameraPreview extends SurfaceView implements
 		// preview.
 		try {
 			mCamera.setPreviewDisplay(holder);
+			int surfaceHeight = getHeight();
+			int surfaceWidth = getWidth();
+			
+			/*int width = 720;
+			int height = 1280;
+			
+			LayoutParams layoutParams = new LayoutParams(
+					width, height);
+			mCamera*/
+			
+			Log.d(TAG,"Surface height: " + surfaceHeight);
+			Log.d(TAG,"Surface width: " + surfaceWidth);
+			
 			mCamera.startPreview();
 		} catch (IOException e) {
 			// TODO: return error message
@@ -88,6 +103,7 @@ public class CameraPreview extends SurfaceView implements
 		// get Supported Preview Sizes
 
 		List<Size> localSizes = parameters.getSupportedPreviewSizes();
+		List<Size> picSizes = parameters.getSupportedPictureSizes();
 
 		// save the width and height we need
 		// height needs to be recalculated to include UI Controls
@@ -95,16 +111,23 @@ public class CameraPreview extends SurfaceView implements
 		int previewWidth = localSizes.get(0).width;
 		int previewHeight = localSizes.get(0).height;
 
+		int pictureWidth = picSizes.get(0).width;
+		int pictureHeight = picSizes.get(0).height;
+		
 		Log.d("CAMERAPREVIEW", "Surface Height: " + getHeight());
 		Log.d("CAMERAPREVIEW", "Surface Width: " + getWidth());
 
 		for (int i = 0; i < localSizes.size(); i++) {
-			Log.d("CAMERAPREVIEW", "Height: " + localSizes.get(i).height);
-			Log.d("CAMERAPREVIEW", "Width: " + localSizes.get(i).width);
+			Log.d("CAMERAPREVIEW", "Height: " + picSizes.get(i).height);
+			Log.d("CAMERAPREVIEW", "Width: " + picSizes.get(i).width);
+			//Log.d("CAMERAPREVIEW", "Height: " + localSizes.get(i).height);
+			//Log.d("CAMERAPREVIEW", "Width: " + localSizes.get(i).width);
 		}
 
 		// set the Preview Size to the correct width and height
 		parameters.setPreviewSize(previewWidth, previewHeight);
+		//parameters.setPreviewSize(800, 480);
+		parameters.setPictureSize(pictureWidth, pictureHeight);
 		requestLayout();
 		// set our camera
 		mCamera.setParameters(parameters);

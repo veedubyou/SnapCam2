@@ -284,10 +284,16 @@ public class CameraHelper {
 								.getDisplayMetrics().widthPixels;
 						int screenHeight = mActivity.getResources()
 								.getDisplayMetrics().heightPixels;
+						
+						
 						Bitmap bm = BitmapFactory.decodeByteArray(data, 0,
 								(data != null) ? data.length : 0);
 
-						if (mActivity.getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT) {
+						screenWidth = bm.getHeight();
+						screenHeight = bm.getWidth();
+						
+						int currOrientation = mActivity.getResources().getConfiguration().orientation;
+						if (currOrientation == Configuration.ORIENTATION_PORTRAIT) {
 							// Notice that width and height are reversed
 							Bitmap scaled = Bitmap.createScaledBitmap(bm,
 									screenHeight, screenWidth, true);
@@ -307,7 +313,7 @@ public class CameraHelper {
 						} else {// LANDSCAPE MODE
 								// No need to reverse width and height
 							Bitmap scaled = Bitmap.createScaledBitmap(bm,
-									screenWidth, screenHeight, true);
+									screenHeight, screenWidth, true);
 							bm = scaled;
 						}
 
@@ -322,11 +328,9 @@ public class CameraHelper {
 						
 
 						try {
-							FileOutputStream fos = new FileOutputStream(
-									pictureFile);
+							FileOutputStream fos = new FileOutputStream(pictureFile);
 							
-							
-							bm.compress(Bitmap.CompressFormat.PNG, 100, fos);
+							bm.compress(Bitmap.CompressFormat.JPEG, 90, fos);
 							
 							setImgPreview(bm); //set the image to the gallery
 							
@@ -336,6 +340,8 @@ public class CameraHelper {
 							}
 							mBM = bm;
 							
+							/*FileOutputStream fos = new FileOutputStream(pictureFile);
+							fos.write(data);*/
 							fos.close();
 							lastPicPath = pictureFile.getPath();
 							
