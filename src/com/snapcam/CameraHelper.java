@@ -6,6 +6,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.List;
 
 import android.annotation.SuppressLint;
 import android.content.Intent;
@@ -16,11 +17,13 @@ import android.graphics.BitmapFactory;
 import android.graphics.Matrix;
 import android.hardware.Camera;
 import android.hardware.Camera.PictureCallback;
+import android.hardware.Camera.Size;
 import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Environment;
 import android.util.Log;
 import android.view.Surface;
+import android.view.View;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 
@@ -58,6 +61,8 @@ public class CameraHelper {
 		
 	}
 	
+
+	
 	public Camera initializeCamera() {
 		initializeCamera(cameraId);
 		return mCamera;
@@ -68,6 +73,34 @@ public class CameraHelper {
 		// Create an instance of Camera
 		mCamera = Camera.open(id); // attempt to get a Camera instance
 		cameraFace = id;
+		mActivity.cameraFace = cameraFace;
+		
+		Camera.Parameters parameters = mCamera.getParameters();
+
+		// get Supported Preview Sizes
+		
+		if(cameraFace != Camera.CameraInfo.CAMERA_FACING_FRONT){
+			List<Size> localSizes = parameters.getSupportedPreviewSizes();
+			int previewWidth = localSizes.get(0).width;
+			int previewHeight = localSizes.get(0).height;
+			parameters.setPreviewSize(previewWidth, previewHeight);
+			
+		}
+
+
+		List<Size> picSizes = parameters.getSupportedPictureSizes();
+		
+
+
+		int pictureWidth = picSizes.get(0).width;
+		int pictureHeight = picSizes.get(0).height;
+
+		// set the Preview Size to the correct width and height
+
+		//parameters.setPreviewSize(800, 480);
+		parameters.setPictureSize(pictureWidth, pictureHeight);
+		// set our camera
+		mCamera.setParameters(parameters);
 		
 		//this.createCameraPreview();
 		//mPreview.setCamera(mCamera);
@@ -193,14 +226,20 @@ public class CameraHelper {
 		if (Camera.getNumberOfCameras() > 1) {
 			FrameLayout preview = (FrameLayout) mActivity
 					.findViewById(R.id.camera_preview);
+			final View voiceMenu = mActivity.findViewById(R.id.voice_menu);
+			
 			preview.removeAllViews();
 			releaseCameraAndPreview();
 			int cameraId = front ? Camera.CameraInfo.CAMERA_FACING_FRONT
 					: Camera.CameraInfo.CAMERA_FACING_BACK;
-			mCamera = Camera.open(cameraId);
+			initializeCamera(cameraId); //B
+			//mCamera = Camera.open(cameraId);
 			cameraFace = cameraId; // update camera face
 			createCameraPreview();
+		    startPreview(); //B
 			mActivity.mFeedbackHelper.createMic();
+			mActivity.mFeedbackHelper.createQuestion();
+			preview.addView(voiceMenu);
 		}
 	}
 
@@ -272,13 +311,7 @@ public class CameraHelper {
 
 				@Override
 				public void onPictureTaken(byte[] data, Camera camera) {
-					
-					
 					if (data != null) {
-
-						
-						
-						
 						// create a bitmap so we can rotate the image
 						int screenWidth = mActivity.getResources()
 								.getDisplayMetrics().widthPixels;
@@ -308,8 +341,7 @@ public class CameraHelper {
 								mtx.postRotate(90);
 							}
 							// Rotating Bitmap
-							bm = Bitmap.createBitmap(scaled, 0, 0, w, h, mtx,
-									true);
+							bm = Bitmap.createBitmap(scaled, 0, 0, w, h, mtx,true);
 						} else {// LANDSCAPE MODE
 								// No need to reverse width and height
 							Bitmap scaled = Bitmap.createScaledBitmap(bm,

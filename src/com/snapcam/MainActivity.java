@@ -43,11 +43,13 @@ public class MainActivity extends Activity {
 
 	public final static String TAG = "MainActivity";
 	public final static boolean USING_GOOGLE_SPEECH_API = true;
+	
 
 	// DEFAULT SETTING VARIABLES
 	static final int micId = 3333;
 	private static final String snapCamURL = ""; 
 	public boolean isFirstLaunch = true;
+	public int cameraFace = 0;
 	
 	SharedPreferences mPrefs;	
 	
@@ -125,7 +127,7 @@ public class MainActivity extends Activity {
 			//if this is the first time the user launches the app, show initial help text
 			isFirstLaunch = mPrefs.getBoolean("IS_FIRST_LAUNCH", true);
 			if(isFirstLaunch){
-				mFeedbackHelper.showHelpText("Tap Screen \nSay Help");
+				mFeedbackHelper.showHelpText("Tap Screen \nSay Snap");
 			}
 
 			
@@ -160,8 +162,14 @@ public class MainActivity extends Activity {
 			switchCam.setOnClickListener(new View.OnClickListener() {
 				@Override
 				public void onClick(View v){
+					try{
 					mCameraHelper.switchCam();
-					
+					}
+					catch(Exception e) {
+						Log.d(TAG, "Switch cam failed");
+						Log.e(TAG, "switch cam failed");
+						e.printStackTrace();
+					}
 				}
 			});
 			
@@ -194,6 +202,7 @@ public class MainActivity extends Activity {
 		if(image == null){
 			mFeedbackHelper.createMic();
 		}
+		
 	}
 	
 	
@@ -316,7 +325,9 @@ public class MainActivity extends Activity {
 				
 				switch (com) {
 				case snap: {
+					mFeedbackHelper.hideVoiceMenu();
 					mCameraHelper.snapPicture();
+
 					return true;
 
 				}
@@ -326,6 +337,7 @@ public class MainActivity extends Activity {
 					return true;
 				}
 				case flashon: {
+					mFeedbackHelper.hideVoiceMenu();
 					mCameraHelper.toggleFlash(true);
 					mFeedbackHelper.showText("Flash on");
 					googleStart(GetSpeechRecognizer());
@@ -333,6 +345,7 @@ public class MainActivity extends Activity {
 
 				}
 				case flashoff: {
+					mFeedbackHelper.hideVoiceMenu();
 					mCameraHelper.toggleFlash(false);
 					mFeedbackHelper.showText("Flash off");
 					googleStart(GetSpeechRecognizer());
@@ -340,6 +353,7 @@ public class MainActivity extends Activity {
 
 				}
 				case frontcamera: {
+					mFeedbackHelper.hideVoiceMenu();
 					mCameraHelper.toggleCamera(true);
 					mFeedbackHelper.showText("Front camera");
 					googleStart(GetSpeechRecognizer());
@@ -347,6 +361,7 @@ public class MainActivity extends Activity {
 			
 				}
 				case backcamera: {
+					mFeedbackHelper.hideVoiceMenu();
 					mCameraHelper.toggleCamera(false);
 					mFeedbackHelper.showText("Back camera");
 					googleStart(GetSpeechRecognizer());
@@ -361,6 +376,7 @@ public class MainActivity extends Activity {
 				case eightseconds:
 				case nineseconds:
 				case tenseconds: {
+					mFeedbackHelper.hideVoiceMenu();
 					snapTimer(com.getValue());
 					return true;
 
@@ -379,9 +395,10 @@ public class MainActivity extends Activity {
 		
 		
 		googleStart(GetSpeechRecognizer());
+		mFeedbackHelper.hideVoiceMenu();
 		mFeedbackHelper.showText("We heard \"" + res + "\", please try again");
 		Log.w("Parsing", "Cannot evaluate " + res);
-
+		//mFeedbackHelper.showVoiceMenu();
 		
 		return false;
 	}

@@ -98,11 +98,34 @@ public class CameraPreview extends SurfaceView implements
 		// reformatting changes here
 
 		// get the parameters object from the Camera
-		Camera.Parameters parameters = mCamera.getParameters();
+		/*Camera.Parameters parameters = mCamera.getParameters();
+	
+		if(mainActivity.cameraFace != Camera.CameraInfo.CAMERA_FACING_FRONT){
+			List<Size> localSizes = parameters.getSupportedPreviewSizes();
+			int previewWidth = localSizes.get(0).width;
+			int previewHeight = localSizes.get(0).height;
+			parameters.setPreviewSize(previewWidth, previewHeight);
+			
+		}
+
+
+		List<Size> picSizes = parameters.getSupportedPictureSizes();
+		
+
+
+		int pictureWidth = picSizes.get(0).width;
+		int pictureHeight = picSizes.get(0).height;
+
+		// set the Preview Size to the correct width and height
+
+		//parameters.setPreviewSize(800, 480);
+		parameters.setPictureSize(pictureWidth, pictureHeight);
+		// set our camera
+		mCamera.setParameters(parameters);*/
 
 		// get Supported Preview Sizes
 
-		List<Size> localSizes = parameters.getSupportedPreviewSizes();
+		/*List<Size> localSizes = parameters.getSupportedPreviewSizes();
 		List<Size> picSizes = parameters.getSupportedPictureSizes();
 
 		// save the width and height we need
@@ -114,14 +137,14 @@ public class CameraPreview extends SurfaceView implements
 		int pictureWidth = picSizes.get(0).width;
 		int pictureHeight = picSizes.get(0).height;
 		
-		Log.d("CAMERAPREVIEW", "Surface Height: " + getHeight());
+		/*Log.d("CAMERAPREVIEW", "Surface Height: " + getHeight());
 		Log.d("CAMERAPREVIEW", "Surface Width: " + getWidth());
 
 		for (int i = 0; i < localSizes.size(); i++) {
 			Log.d("CAMERAPREVIEW", "Height: " + picSizes.get(i).height);
 			Log.d("CAMERAPREVIEW", "Width: " + picSizes.get(i).width);
-			//Log.d("CAMERAPREVIEW", "Height: " + localSizes.get(i).height);
-			//Log.d("CAMERAPREVIEW", "Width: " + localSizes.get(i).width);
+			Log.d("CAMERAPREVIEW", "Height: " + localSizes.get(i).height);
+			Log.d("CAMERAPREVIEW", "Width: " + localSizes.get(i).width);
 		}
 
 		// set the Preview Size to the correct width and height
@@ -130,7 +153,7 @@ public class CameraPreview extends SurfaceView implements
 		parameters.setPictureSize(pictureWidth, pictureHeight);
 		requestLayout();
 		// set our camera
-		mCamera.setParameters(parameters);
+		mCamera.setParameters(parameters);*/
 
 		// start preview with new settings
 		try {

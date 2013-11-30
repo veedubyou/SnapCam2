@@ -2,5 +2,5 @@
 <resources>
     <color name = "white"> #ffffffff</color>
     <color name = "white_light"> #4Dffffff</color>
-    <color name = "optionColor"> #FBAF3F</color>
+    <color name = "optionColor"> #F28920</color>
 </resources>

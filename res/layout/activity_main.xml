@@ -19,7 +19,7 @@
            android:layout_marginLeft="20dp"
            android:layout_marginRight="20dp"
            android:layout_marginTop="30dp"
-           android:background="#7CB4D6"
+           android:background="#0975CE"
            
         >
 
@@ -28,8 +28,6 @@
 	           android:id="@+id/help_info"
 	           android:layout_width="match_parent"
 	           android:layout_height="wrap_content"
-	           android:layout_marginTop="5dp"
-	           android:layout_below="@+id/imageButtonClose"
 	           android:orientation="vertical"
 	           android:visibility="visible"
 	       >
@@ -39,6 +37,7 @@
 	               android:layout_width="wrap_content"
 	               android:layout_height="wrap_content"
 	               android:layout_marginBottom="15dp"
+	               android:layout_marginTop="30dp"
 	               android:layout_gravity="center_horizontal"
 	               android:text="Tap Screen and Say" />
 	
@@ -51,13 +50,13 @@
 	               android:stretchColumns="*" >
 	               
 	               <TableRow
-	                   android:id="@+id/tableRow2"
+	                   android:id="@+id/tableRow1"
 	                   android:layout_width="match_parent"
 	                   android:layout_height="wrap_content" 
 	                   android:layout_marginBottom="20dp">
 	                   		<TextView
 			               style="@style/cmd"
-			               android:id="@+id/textView1"
+			               android:id="@+id/textSnap"
 			               android:layout_width="0dip"
 			               android:layout_height="wrap_content"
 			               android:layout_weight="1"
@@ -71,7 +70,7 @@
 	                   android:layout_marginBottom="20dp">
 	                   		<TextView
 			               style="@style/cmd"
-			               android:id="@+id/textView1"
+			               android:id="@+id/textHelp"
 			               android:layout_width="0dip"
 			               android:layout_height="wrap_content"
 			               android:layout_weight="1"
@@ -80,7 +79,7 @@
 	               </TableRow>
 	
 	               <TableRow
-	                   android:id="@+id/tableRow1"
+	                   android:id="@+id/tableRow3"
 	                   android:layout_width="match_parent"
 	                   android:layout_height="wrap_content"
 	                   android:layout_marginBottom="20dp"
@@ -88,7 +87,7 @@
 	                   
 	                   <TextView
 	                       style="@style/cmd"
-			               android:id="@+id/textView2"
+			               android:id="@+id/textSeconds"
 			               android:layout_weight="1"
 			               android:layout_width="0dip"
 			               android:layout_height="wrap_content"
@@ -96,7 +95,7 @@
 	                   
 	                   <TextView
 	                       style="@style/options"
-			               android:id="@+id/textView3"
+			               android:id="@+id/textSecsOptions"
 			               android:layout_weight="1"
 			               android:layout_width="0dip"
 			               android:layout_height="wrap_content"
@@ -104,7 +103,7 @@
 	                   
 	               </TableRow>
 	                              <TableRow
-	                   android:id="@+id/tableRow1"
+	                   android:id="@+id/tableRow4"
 	                   android:layout_width="match_parent"
 	                   android:layout_height="wrap_content"
 	                   android:layout_marginBottom="20dp"
@@ -112,7 +111,7 @@
 	                   
 	                   <TextView
 	                       style="@style/cmd"
-			               android:id="@+id/textView2"
+			               android:id="@+id/textFC"
 			               android:layout_weight="1"
 			               android:layout_width="0dip"
 			               android:layout_height="wrap_content"
@@ -120,36 +119,14 @@
 	                   
 	                   <TextView
 	                       style="@style/options"
-			               android:id="@+id/textView3"
+			               android:id="@+id/textFCOptions"
 			               android:layout_weight="1"
 			               android:layout_width="0dip"
 			               android:layout_height="wrap_content"
 			               android:text="Front/Back" />
 	                   
 	               </TableRow>
-	                              <TableRow
-	                   android:id="@+id/tableRow1"
-	                   android:layout_width="match_parent"
-	                   android:layout_height="wrap_content"
-	                    >
-	                   
-	                   <TextView
-	                       style="@style/cmd"
-			               android:id="@+id/textView2"
-			               android:layout_weight="1"
-			               android:layout_width="0dip"
-			               android:layout_height="wrap_content"
-			               android:text="Flash On" />
-	                   
-	                   <TextView
-	                       style="@style/options"
-			               android:id="@+id/textView3"
-			               android:layout_weight="1"
-			               android:layout_width="0dip"
-			               android:layout_height="wrap_content"
-			               android:text="On/Off" />
-	                   
-	               </TableRow>
+	                              
 	
 	               
 	

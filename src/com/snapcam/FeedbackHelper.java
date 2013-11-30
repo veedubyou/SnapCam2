@@ -5,6 +5,7 @@ import android.content.res.Resources;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.os.Handler;
+import android.text.Html;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.util.TypedValue;
@@ -92,15 +93,14 @@ public class FeedbackHelper {
 		helpHeader.setTextAppearance(mActivity.getApplicationContext(), R.style.help);
 		helpHeader.setTypeface(mFont);
 		
-		/*final ImageButton close = (ImageButton) mActivity.findViewById(R.id.imageButtonClose);
-		close.setOnClickListener(new View.OnClickListener() {
-			@Override
-			public void onClick(View v){
+		String [] cmds = {"<font color = '#F28920'>3</font> seconds","<font color = '#F28920'>Front</font> Camera"};
+		int [] ids = {R.id.textSeconds, R.id.textFC};
 				
-				hideVoiceMenu();
-			}
-		});*/
-		
+		for(int i = 0; i < cmds.length; i++){
+			TextView textSeconds = (TextView) mActivity.findViewById(ids[i]);
+			textSeconds.setText(Html.fromHtml(cmds[i]));
+		}
+				
 		
 		View frameView = mActivity.findViewById(R.id.camera_preview);
 		((FrameLayout) frameView).removeView(voiceMenu);
