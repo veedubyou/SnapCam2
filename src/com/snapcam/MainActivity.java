@@ -4,8 +4,9 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Iterator;
 
+import javax.microedition.khronos.opengles.GL10;
+
 import android.app.Activity;
-import android.content.BroadcastReceiver;
 
 //import android.support.v4.content.LocalBroadcastManager;
 import android.content.Context;
@@ -15,23 +16,19 @@ import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.net.ConnectivityManager;
-import android.net.Uri;
+import android.graphics.Canvas;
+import android.opengl.GLES10;
 import android.os.Bundle;
 import android.os.Environment;
 import android.speech.RecognizerIntent;
 import android.speech.SpeechRecognizer;
-import android.telephony.PhoneStateListener;
-import android.telephony.TelephonyManager;
 import android.util.Log;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.ImageView;
-import android.widget.Toast;
-
-import com.example.snapcam.R;
+import minion.snapcam.R;
 
 public class MainActivity extends Activity {
 	FeedbackHelper mFeedbackHelper = null;
@@ -39,7 +36,7 @@ public class MainActivity extends Activity {
 	private boolean started = false;
 	private SpeechRecognizer mSpeechRecognizer = null;
 	private RecognizerCallback mListener = null;
-	
+	public int maxTextureSize = GL10.GL_MAX_TEXTURE_SIZE;
 
 	public final static String TAG = "MainActivity";
 	public final static boolean USING_GOOGLE_SPEECH_API = true;
@@ -60,14 +57,7 @@ public class MainActivity extends Activity {
 		// onStart releases and creates the camera
 		super.onCreate(savedInstanceState);
 		Log.d(TAG, "onCreate");
-		
-		
-		
-				
-		
 
-		
-		
 		if (savedInstanceState == null) {
 			setContentView(R.layout.activity_main);
 
@@ -166,17 +156,16 @@ public class MainActivity extends Activity {
 					mCameraHelper.switchCam();
 					}
 					catch(Exception e) {
-						Log.d(TAG, "Switch cam failed");
-						Log.e(TAG, "switch cam failed");
-						e.printStackTrace();
+						/*Log.d(TAG, "Switch cam failed");
+						e.printStackTrace();*/
 					}
 				}
 			});
 			
 		} catch (Exception e) {
-			Log.d(TAG, "failed to open Camera");
+			/*Log.d(TAG, "failed to open Camera");
 			Log.e(getString(R.string.app_name), "failed to open Camera");
-			e.printStackTrace();
+			e.printStackTrace();*/
 		}
 	}	
 
@@ -184,7 +173,7 @@ public class MainActivity extends Activity {
 	
 	@Override
 	protected void onStop() {
-		Log.d(TAG, "onStop");
+		//Log.d(TAG, "onStop");
 		super.onStop();
 		FrameLayout preview = (FrameLayout) findViewById(R.id.camera_preview);
 		mCameraHelper.removeCameraPreview(preview);	
@@ -193,7 +182,7 @@ public class MainActivity extends Activity {
 
 	@Override
 	protected void onResume() {
-		Log.d(TAG, "onResume");
+		//Log.d(TAG, "onResume");
 		super.onResume();
 		//This can come immediately after start if another app partially covers it
 		
@@ -211,13 +200,13 @@ public class MainActivity extends Activity {
 	protected void onDestroy() {
 		// TODO Auto-generated method stub
 		super.onDestroy();
-		Log.d(TAG,"onDestroy");
+		//Log.d(TAG,"onDestroy");
 	}
 
 	@Override
 	protected void onPause() {
 		super.onPause();
-		Log.d(TAG, "onPause");
+		//Log.d(TAG, "onPause");
 
 		// remove all nonpersistent ImageViews from the Surface
 		// Mic
@@ -234,7 +223,7 @@ public class MainActivity extends Activity {
 	@Override
 	protected void onRestart() {
 		super.onRestart();
-		Log.d(TAG, "onRestart");
+		//Log.d(TAG, "onRestart");
 		
 	}
 
@@ -242,7 +231,7 @@ public class MainActivity extends Activity {
 	protected void onRestoreInstanceState(Bundle savedInstanceState) {
 		// If this method is called, it is called before onStop. May or may not
 		// occur
-		Log.d(TAG, "onRestoreInstanceState");
+		//Log.d(TAG, "onRestoreInstanceState");
 		super.onRestoreInstanceState(savedInstanceState);
 		
 
@@ -253,7 +242,7 @@ public class MainActivity extends Activity {
 	@Override
 	protected void onSaveInstanceState(Bundle outState) {
 
-		Log.d(TAG, "onSaveInstanceState");
+		//Log.d(TAG, "onSaveInstanceState");
 
 		/*Camera.Parameters parameters = mCamera.getParameters();
 
@@ -316,7 +305,7 @@ public class MainActivity extends Activity {
 				result = "snap";
 			}
 
-			Log.i("resulting string", result);
+			//Log.i("resulting string", result);
 
 			
 			Commands com = null;
@@ -397,7 +386,7 @@ public class MainActivity extends Activity {
 		googleStart(GetSpeechRecognizer());
 		mFeedbackHelper.hideVoiceMenu();
 		mFeedbackHelper.showText("We heard \"" + res + "\", please try again");
-		Log.w("Parsing", "Cannot evaluate " + res);
+		//Log.w("Parsing", "Cannot evaluate " + res);
 		//mFeedbackHelper.showVoiceMenu();
 		
 		return false;
@@ -425,13 +414,13 @@ public class MainActivity extends Activity {
 	 */
 	public void onPartialResult(String res) {
 		if (started) {
-			Log.d("result", res);
+			//Log.d("result", res);
 			// parseResults(res);
 		}
 	}
 
 	public void onResult(String res) {
-		Log.d("result", res);
+		//Log.d("result", res);
 		// parseResults(res);
 	}
 
@@ -444,7 +433,7 @@ public class MainActivity extends Activity {
 		
 		// TODO add more intents
 		sr.startListening(intent);
-		Log.d("RecognizerActivity", "Call startListening");
+		//Log.d("RecognizerActivity", "Call startListening");
 		mListener.setListening(true);
 	}
 

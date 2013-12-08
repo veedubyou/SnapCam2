@@ -3,4 +3,5 @@
     <color name = "white"> #ffffffff</color>
     <color name = "white_light"> #4Dffffff</color>
     <color name = "optionColor"> #F28920</color>
+    <color name = "optionColor2"> #FCC67E</color>
 </resources>

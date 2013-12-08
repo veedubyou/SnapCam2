@@ -27,7 +27,7 @@ import android.view.View;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 
-import com.example.snapcam.R;
+import minion.snapcam.R;
 
 public class CameraHelper {
 	private MainActivity mActivity = null;
@@ -39,6 +39,8 @@ public class CameraHelper {
 	private Bitmap mBM = null;
 
 	private String lastPicPath = null;
+	private List<Size> picSizes = null;
+	
 	public final static String TAG = "CameraHelper";
 	
 	// CAMERA PARAMETER KEYS
@@ -53,10 +55,12 @@ public class CameraHelper {
 		lastPicPath = mPrefs.getString("LAST_PIC_PATH",null);
 		mPlayer = MediaPlayer.create(mActivity, R.raw.cam_shutter);
 		
+		
 		//
 		this.initializeCamera();
 		this.createCameraPreview(); //previously started oncreate
 		mPreview.setCamera(mCamera);
+
 		
 		
 	}
@@ -87,14 +91,26 @@ public class CameraHelper {
 			
 		}
 
+		picSizes = parameters.getSupportedPictureSizes();
 
-		List<Size> picSizes = parameters.getSupportedPictureSizes();
+		int pictureWidth = 0;
+		int pictureHeight = 0;
+		boolean reset = false;
+		for(int i = 0; i < picSizes.size(); i++){ 
+			pictureWidth = picSizes.get(i).width;
+			pictureHeight = picSizes.get(i).height;
+			if(pictureWidth < mActivity.maxTextureSize && pictureHeight < mActivity.maxTextureSize){
+				reset = true;
+				break;
+			}
+
+		}
 		
-
-
-		int pictureWidth = picSizes.get(0).width;
-		int pictureHeight = picSizes.get(0).height;
-
+		if(reset == false){
+			pictureWidth = picSizes.get(picSizes.size()-1).width;
+			pictureHeight = picSizes.get(picSizes.size()-1).height;
+		}
+		
 		// set the Preview Size to the correct width and height
 
 		//parameters.setPreviewSize(800, 480);
@@ -271,7 +287,7 @@ public class CameraHelper {
 		// Create the storage directory if it does not exist
 		if (!mediaStorageDir.exists()) {
 			if (!mediaStorageDir.mkdirs()) {
-				Log.d("MyCameraApp", "failed to create directory");
+				//Log.d("MyCameraApp", "failed to create directory");
 				return null;
 			}
 		}
@@ -292,7 +308,7 @@ public class CameraHelper {
 	public void setImgPreview(Bitmap bm){
 	//
 		if(bm == null){
-			Log.d(TAG, "Image was not created");
+			//Log.d(TAG, "Image was not created");
 		}
 		else{
 			ImageView image = (ImageView) mActivity.findViewById(R.id.imageButtonGallery);
@@ -312,24 +328,25 @@ public class CameraHelper {
 				@Override
 				public void onPictureTaken(byte[] data, Camera camera) {
 					if (data != null) {
+						
+						
 						// create a bitmap so we can rotate the image
-						int screenWidth = mActivity.getResources()
-								.getDisplayMetrics().widthPixels;
-						int screenHeight = mActivity.getResources()
-								.getDisplayMetrics().heightPixels;
 						
 						
 						Bitmap bm = BitmapFactory.decodeByteArray(data, 0,
 								(data != null) ? data.length : 0);
-
-						screenWidth = bm.getHeight();
-						screenHeight = bm.getWidth();
+						
+						int screenWidth = bm.getWidth();
+						int screenHeight = bm.getHeight();
+						
 						
 						int currOrientation = mActivity.getResources().getConfiguration().orientation;
 						if (currOrientation == Configuration.ORIENTATION_PORTRAIT) {
 							// Notice that width and height are reversed
 							Bitmap scaled = Bitmap.createScaledBitmap(bm,
-									screenHeight, screenWidth, true);
+									screenWidth, screenHeight, true);
+							/*Bitmap scaled = Bitmap.createScaledBitmap(bm,
+									screenHeight, screenWidth, true);*/
 							int w = scaled.getWidth();
 							int h = scaled.getHeight();
 							// Setting post rotate to 90
@@ -342,17 +359,19 @@ public class CameraHelper {
 							}
 							// Rotating Bitmap
 							bm = Bitmap.createBitmap(scaled, 0, 0, w, h, mtx,true);
-						} else {// LANDSCAPE MODE
+							} else {// LANDSCAPE MODE
 								// No need to reverse width and height
 							Bitmap scaled = Bitmap.createScaledBitmap(bm,
-									screenHeight, screenWidth, true);
+									screenWidth, screenHeight, true);
+							/*Bitmap scaled = Bitmap.createScaledBitmap(bm,
+									screenHeight, screenWidth, true);*/
 							bm = scaled;
+
 						}
 
 						File pictureFile = getOutputMediaFile();
 						if (pictureFile == null) {
-							Log.d("File",
-									"Error creating media file, check storage permissions: ");
+							//Log.d("File","Error creating media file, check storage permissions: ");
 							return;
 						}
 						
@@ -362,7 +381,12 @@ public class CameraHelper {
 						try {
 							FileOutputStream fos = new FileOutputStream(pictureFile);
 							
+							
+							
+													
 							bm.compress(Bitmap.CompressFormat.JPEG, 90, fos);
+							//bm.recycle();
+
 							
 							setImgPreview(bm); //set the image to the gallery
 							
@@ -402,7 +426,7 @@ public class CameraHelper {
 							//Picture is in Gallery
 
 						} catch (FileNotFoundException e) {
-							Log.d("File", "File not found: " + e.getMessage());
+							//Log.d("File", "File not found: " + e.getMessage());
 						} catch (IOException e) {
 							Log.d("File",
 									"Error accessing file: " + e.getMessage());
@@ -420,7 +444,7 @@ public class CameraHelper {
 			
 			if(lastPicPath == null){
 				//create a toast notification that says you have no pics
-				Log.d(TAG,"no pictures have been take");
+				//Log.d(TAG,"no pictures have been take");
 			}
 			else{
 				File file = new File(lastPicPath);
@@ -435,7 +459,7 @@ public class CameraHelper {
 				}
 				else{
 					//TODO: Add Message to user
-					Log.d(TAG,lastPicPath+" does not exist");
+					//Log.d(TAG,lastPicPath+" does not exist");
 				}
 			}
 		}

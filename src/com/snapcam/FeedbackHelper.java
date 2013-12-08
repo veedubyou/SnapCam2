@@ -19,9 +19,9 @@ import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import com.example.snapcam.R;
-import com.example.snapcam.R.drawable;
-import com.example.snapcam.R.id;
+import minion.snapcam.R;
+import minion.snapcam.R.drawable;
+import minion.snapcam.R.id;
 
 public class FeedbackHelper {
 	private MainActivity mActivity = null;
@@ -30,6 +30,7 @@ public class FeedbackHelper {
 	
 	private SharedPreferences mPrefs = null;
 	private Typeface mFont = null;
+	private int questionButtonID = 22;
 	boolean isVoiceMenuOn = false;
 	
 	public final static String TAG = "FeedbackHelper";
@@ -69,7 +70,7 @@ public class FeedbackHelper {
 				
 				FeedbackHelper.this.removeText(helpTextView);
 				mPrefs.edit().putBoolean("IS_FIRST_LAUNCH", false).commit();
-				
+				mActivity.onTap();
 			}
 		});
 	}
@@ -78,6 +79,10 @@ public class FeedbackHelper {
 		final View voiceMenu = mActivity.findViewById(R.id.voice_menu);
 		voiceMenu.setVisibility(View.INVISIBLE);
 		isVoiceMenuOn = false;
+		
+		int imgID = drawable.question;
+		ImageButton question = (ImageButton) mActivity.findViewById(questionButtonID);
+		question.setBackgroundResource(imgID);
 	}
 	
 	public void createVoiceMenu(){
@@ -89,11 +94,11 @@ public class FeedbackHelper {
 		
 		//change font for header
 		TextView helpHeader = (TextView) mActivity.findViewById(R.id.helpHeader);
-		mFont = Typeface.createFromAsset(mActivity.getAssets(), "RockSalt.ttf");
+		//mFont = Typeface.createFromAsset(mActivity.getAssets(), "RockSalt.ttf");
 		helpHeader.setTextAppearance(mActivity.getApplicationContext(), R.style.help);
-		helpHeader.setTypeface(mFont);
+		//helpHeader.setTypeface(mFont);
 		
-		String [] cmds = {"<font color = '#F28920'>3</font> seconds","<font color = '#F28920'>Front</font> Camera"};
+		String [] cmds = {"<font color = '#FCC67E'>3</font> Seconds","<font color = '#FCC67E'>Front</font> Camera"};
 		int [] ids = {R.id.textSeconds, R.id.textFC};
 				
 		for(int i = 0; i < cmds.length; i++){
@@ -111,6 +116,10 @@ public class FeedbackHelper {
 		View voiceMenu = mActivity.findViewById(R.id.voice_menu);
 		voiceMenu.setVisibility(View.VISIBLE);
 		isVoiceMenuOn = true;
+		
+		int imgID = drawable.question_pressed;
+		ImageButton question = (ImageButton) mActivity.findViewById(questionButtonID);
+		question.setBackgroundResource(imgID);
 	}
 	
 	public void countDown(int value) {
@@ -182,6 +191,14 @@ public class FeedbackHelper {
 			}
 		};
 	}
+	
+	int dpToPx(float dpNum){
+	//required: number in dp
+		DisplayMetrics displaymetrics = mActivity.getResources().getDisplayMetrics();
+		float pxNum =TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, dpNum, displaymetrics);
+		return ((int) pxNum);
+		
+	}
 
 	public void createMic() {
 		// assume that the Main Activity will check if the ImageView already
@@ -190,15 +207,26 @@ public class FeedbackHelper {
 		View frameView = mActivity.findViewById(id.camera_preview);
 	
 		ImageView image = new ImageView(mActivity.getApplicationContext());
-	
+		
 		int imgID = drawable.mic_on;
 		image.setImageResource(imgID);
 		image.setId(MainActivity.micId);
 	
+		//convert DP to pixels to set layout params
+		
+		
+		float heightDP = 40;
+		float widthDP = 40;
+		float bottomMarginDP = 75;
+		
+		int ht_px = dpToPx(heightDP);
+		int wt_px = dpToPx(widthDP);
+		int bottomMargin_px = dpToPx(bottomMarginDP);
+		
 		LayoutParams layoutParams = new LayoutParams(
-				80, 80);
+				ht_px, wt_px);
 		layoutParams.gravity = Gravity.BOTTOM;
-		layoutParams.bottomMargin = 150;
+		layoutParams.bottomMargin = bottomMargin_px;
 		image.setLayoutParams(layoutParams);
 	
 		((FrameLayout) frameView).addView(image);
@@ -215,17 +243,28 @@ public class FeedbackHelper {
 		
 		ImageButton img = new ImageButton(mActivity.getApplicationContext());
 		img.setBackgroundResource(imgID);
+		img.setId(questionButtonID);
 		//ImageView image = new ImageView(mActivity.getApplicationContext());
 	
 
 		//image.setImageResource(imgID);
 	
+		float ht_dp = 48;
+		float wt_dp = 40;
+		float bottomMargin_dp = 75;
+		float rightMargin_dp = 10;
+		
+		int ht_px = dpToPx(ht_dp);
+		int wt_px = dpToPx(wt_dp);
+		int bottomMargin_px = dpToPx(bottomMargin_dp);
+		int rightMargin_px = dpToPx(rightMargin_dp);
+		
 		LayoutParams layoutParams = new LayoutParams(
-				96, 80);
+				ht_px, wt_px);
 		layoutParams.gravity = Gravity.BOTTOM | Gravity.RIGHT;
 		//layoutParams.gravity = Gravity.RIGHT;
-		layoutParams.bottomMargin = 150;
-		layoutParams.rightMargin = 20;
+		layoutParams.bottomMargin = bottomMargin_px;
+		layoutParams.rightMargin = rightMargin_px;
 		img.setLayoutParams(layoutParams);
 		
 		img.setOnClickListener(new View.OnClickListener() {
@@ -255,7 +294,7 @@ public class FeedbackHelper {
 			image.setVisibility(View.VISIBLE);
 	
 		} catch (Exception e) {
-			Log.d(MainActivity.TAG, "Failed to load img",e);
+			//Log.d(MainActivity.TAG, "Failed to load img",e);
 	
 		}
 	}
@@ -266,7 +305,7 @@ public class FeedbackHelper {
 			image.setVisibility(View.INVISIBLE);
 	
 		} catch (Exception e) {
-			Log.d(MainActivity.TAG, "Failed to load img",e);
+			//Log.d(MainActivity.TAG, "Failed to load img",e);
 	
 		}
 	

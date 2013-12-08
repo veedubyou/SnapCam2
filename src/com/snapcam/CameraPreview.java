@@ -3,10 +3,7 @@ package com.snapcam;
 import java.io.IOException;
 import java.util.List;
 
-import android.content.Context;
 import android.hardware.Camera;
-import android.hardware.Camera.Size;
-import android.util.Log;
 import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
@@ -51,18 +48,12 @@ public class CameraPreview extends SurfaceView implements
 		// preview.
 		try {
 			mCamera.setPreviewDisplay(holder);
-			int surfaceHeight = getHeight();
+			/*int surfaceHeight = getHeight();
 			int surfaceWidth = getWidth();
 			
-			/*int width = 720;
-			int height = 1280;
-			
-			LayoutParams layoutParams = new LayoutParams(
-					width, height);
-			mCamera*/
 			
 			Log.d(TAG,"Surface height: " + surfaceHeight);
-			Log.d(TAG,"Surface width: " + surfaceWidth);
+			Log.d(TAG,"Surface width: " + surfaceWidth);*/
 			
 			mCamera.startPreview();
 		} catch (IOException e) {
