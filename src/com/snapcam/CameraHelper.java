@@ -19,6 +19,7 @@ import android.hardware.Camera;
 import android.hardware.Camera.PictureCallback;
 import android.hardware.Camera.Size;
 import android.media.MediaPlayer;
+import android.media.MediaScannerConnection;
 import android.net.Uri;
 import android.os.Environment;
 import android.util.Log;
@@ -26,7 +27,6 @@ import android.view.Surface;
 import android.view.View;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
-
 import minion.snapcam.R;
 
 public class CameraHelper {
@@ -381,13 +381,8 @@ public class CameraHelper {
 						try {
 							FileOutputStream fos = new FileOutputStream(pictureFile);
 							
-							
-							
 													
 							bm.compress(Bitmap.CompressFormat.JPEG, 90, fos);
-							//bm.recycle();
-
-							
 							setImgPreview(bm); //set the image to the gallery
 							
 							//remove the old thumbnail image
@@ -401,27 +396,21 @@ public class CameraHelper {
 							fos.close();
 							lastPicPath = pictureFile.getPath();
 							
-							//galleryPath = "file:/" + lastPicPath;
-							//galleryPath = "file://storage/emulated/0/Pictures/SnapCam/IMG_20131102_23325.jpg";
-							//launchGallery(lastPicPath);
 
 							
 							mCamera.startPreview();
 							
-							
-							
+							//scan a single file - exists only since API lvl 8
+							 MediaScannerConnection.scanFile(mActivity.getApplicationContext(),
+							          new String[] { pictureFile.getPath() }, null,
+							          new MediaScannerConnection.OnScanCompletedListener() {
+							      public void onScanCompleted(String path, Uri uri) {
+							          Log.i("ExternalStorage", "Scanned " + path + ":");
+							          Log.i("ExternalStorage", "-> uri=" + uri);
+							      }
+							 });
 
-							// force scan the SD Card so the images show up in
-							// Gallery
-							mActivity
-									.sendBroadcast(new Intent(
-											Intent.ACTION_MEDIA_MOUNTED,
-											Uri.parse("file://"
-													+ Environment
-															.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES))));
-							/*
-							 * potentially possibly better to use Media Scanner
-							 */
+							
 							
 							//Picture is in Gallery
 
