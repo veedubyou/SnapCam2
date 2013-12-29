@@ -9,9 +9,11 @@ import java.util.Date;
 import java.util.List;
 
 import android.annotation.SuppressLint;
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.res.Configuration;
+import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Matrix;
@@ -27,6 +29,7 @@ import android.view.Surface;
 import android.view.View;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
+import android.widget.Toast;
 import minion.snapcam.R;
 
 public class CameraHelper {
@@ -45,6 +48,8 @@ public class CameraHelper {
 	
 	// CAMERA PARAMETER KEYS
 
+	private static int reqWidth = -1;
+	private static int reqHeight = -1;
 	private static final int cameraId = Camera.CameraInfo.CAMERA_FACING_BACK;
 	public int cameraFace;
 	static final String FLASH_MODE = "flashMode";	
@@ -54,13 +59,15 @@ public class CameraHelper {
 		mPrefs = prefs;
 		lastPicPath = mPrefs.getString("LAST_PIC_PATH",null);
 		mPlayer = MediaPlayer.create(mActivity, R.raw.cam_shutter);
-		
+
 		
 		//
 		this.initializeCamera();
 		this.createCameraPreview(); //previously started oncreate
 		mPreview.setCamera(mCamera);
-
+		reqWidth = mActivity.mFeedbackHelper.dpToPx(60);
+		reqHeight = reqWidth;
+		
 		
 		
 	}
@@ -320,7 +327,150 @@ public class CameraHelper {
 	public String getPrevPic(){
 		return lastPicPath;
 	}
+	
+	public static int calculateInSampleSize(
+            BitmapFactory.Options options, int reqWidth, int reqHeight) {
+    // Raw height and width of image
+    final int height = options.outHeight;
+    final int width = options.outWidth;
+    int inSampleSize = 1;
 
+    if (height > reqHeight || width > reqWidth) {
+
+        final int halfHeight = height / 2;
+        final int halfWidth = width / 2;
+
+        // Calculate the largest inSampleSize value that is a power of 2 and keeps both
+        // height and width larger than the requested height and width.
+        while ((halfHeight / inSampleSize) > reqHeight
+                && (halfWidth / inSampleSize) > reqWidth) {
+            inSampleSize *= 2;
+        }
+    }
+
+    return inSampleSize;
+}
+	
+	public static Bitmap decodeSampledBitmapfromData(byte[] data){
+	//create a scaled down bitmap of the image data to conserve heap memory
+		
+		final BitmapFactory.Options options = new BitmapFactory.Options();
+		options.inJustDecodeBounds = true;
+		BitmapFactory.decodeByteArray(data, 0,
+				(data != null) ? data.length : 0,options);
+		
+		
+		options.inSampleSize = calculateInSampleSize(options, reqWidth, reqHeight);
+		
+		// Decode bitmap with inSampleSize set
+	    options.inJustDecodeBounds = false;
+	    
+	    return BitmapFactory.decodeByteArray(data, 0,
+				(data != null) ? data.length : 0,options);
+		
+	}
+	
+	public Bitmap decodeSampledBitmapfromFile(String filepath){
+		//create a scaled down bitmap of the image data to conserve heap memory
+			
+			final BitmapFactory.Options options = new BitmapFactory.Options();
+			options.inJustDecodeBounds = true;
+			BitmapFactory.decodeFile(filepath,options);
+			
+			
+			options.inSampleSize = calculateInSampleSize(options, reqWidth, reqHeight);
+			
+			// Decode bitmap with inSampleSize set
+		    options.inJustDecodeBounds = false;
+		    
+		    return BitmapFactory.decodeFile(filepath,options);
+			
+	}
+
+	public Bitmap getRotatedBM(Bitmap bm, Camera camera){
+		// create a bitmap so we can rotate the image
+				
+		
+		
+		int screenWidth = bm.getWidth();
+		int screenHeight = bm.getHeight();
+		
+		
+		int currOrientation = mActivity.getResources().getConfiguration().orientation;
+		if (currOrientation == Configuration.ORIENTATION_PORTRAIT) {
+			// Notice that width and height are reversed
+			Bitmap scaled = Bitmap.createScaledBitmap(bm,
+					screenWidth, screenHeight, true);
+
+			int w = scaled.getWidth();
+			int h = scaled.getHeight();
+			// Setting post rotate to 90
+			Matrix mtx = new Matrix();
+
+			if (cameraFace == Camera.CameraInfo.CAMERA_FACING_FRONT) {
+				mtx.postRotate(-90);
+			} else {
+				mtx.postRotate(90);
+			}
+			// Rotating Bitmap
+			bm = Bitmap.createBitmap(scaled, 0, 0, w, h, mtx,true);
+			} else {// LANDSCAPE MODE
+				// No need to reverse width and height
+			Bitmap scaled = Bitmap.createScaledBitmap(bm,
+					screenWidth, screenHeight, true);
+
+			bm = scaled;
+
+			}
+		return bm;
+	}
+	
+	private void saveBitmap(Bitmap bm){
+		File pictureFile = getOutputMediaFile();
+		
+		if (pictureFile == null) {
+			//Log.d("File","Error creating media file, check storage permissions: ");
+			return;
+		}
+		
+								
+		
+
+		try {
+			FileOutputStream fos = new FileOutputStream(pictureFile);
+			
+			
+			
+			bm.compress(Bitmap.CompressFormat.JPEG, 85, fos); //this is slow
+			
+			/*FileOutputStream fos = new FileOutputStream(pictureFile);
+			fos.write(data);*/
+			fos.close();
+			lastPicPath = pictureFile.getPath();
+			
+
+			
+			//scan a single file - exists only since API lvl 8
+			 MediaScannerConnection.scanFile(mActivity.getApplicationContext(),
+			          new String[] { pictureFile.getPath() }, null,
+			          new MediaScannerConnection.OnScanCompletedListener() {
+			      public void onScanCompleted(String path, Uri uri) {
+			          Log.i("ExternalStorage", "Scanned " + path + ":");
+			          Log.i("ExternalStorage", "-> uri=" + uri);
+			      }
+			 });
+
+			//Picture is in Gallery
+
+		} catch (FileNotFoundException e) {
+			//Log.d("File", "File not found: " + e.getMessage());
+		} catch (IOException e) {
+			Log.d("File",
+					"Error accessing file: " + e.getMessage());
+		}
+		
+	}
+	
 	private PictureCallback getPicCallback() {
 		if (mPicCallback == null) {
 			mPicCallback = new PictureCallback() {
@@ -330,96 +480,79 @@ public class CameraHelper {
 					if (data != null) {
 						
 						
-						// create a bitmap so we can rotate the image
-						
-						
-						Bitmap bm = BitmapFactory.decodeByteArray(data, 0,
-								(data != null) ? data.length : 0);
-						
-						int screenWidth = bm.getWidth();
-						int screenHeight = bm.getHeight();
-						
-						
-						int currOrientation = mActivity.getResources().getConfiguration().orientation;
-						if (currOrientation == Configuration.ORIENTATION_PORTRAIT) {
-							// Notice that width and height are reversed
-							Bitmap scaled = Bitmap.createScaledBitmap(bm,
-									screenWidth, screenHeight, true);
-							/*Bitmap scaled = Bitmap.createScaledBitmap(bm,
-									screenHeight, screenWidth, true);*/
-							int w = scaled.getWidth();
-							int h = scaled.getHeight();
-							// Setting post rotate to 90
-							Matrix mtx = new Matrix();
-
-							if (cameraFace == Camera.CameraInfo.CAMERA_FACING_FRONT) {
-								mtx.postRotate(-90);
-							} else {
-								mtx.postRotate(90);
-							}
-							// Rotating Bitmap
-							bm = Bitmap.createBitmap(scaled, 0, 0, w, h, mtx,true);
-							} else {// LANDSCAPE MODE
-								// No need to reverse width and height
-							Bitmap scaled = Bitmap.createScaledBitmap(bm,
-									screenWidth, screenHeight, true);
-							/*Bitmap scaled = Bitmap.createScaledBitmap(bm,
-									screenHeight, screenWidth, true);*/
-							bm = scaled;
-
-						}
-
-						File pictureFile = getOutputMediaFile();
-						if (pictureFile == null) {
-							//Log.d("File","Error creating media file, check storage permissions: ");
-							return;
-						}
-						
-												
-						
-
-						try {
-							FileOutputStream fos = new FileOutputStream(pictureFile);
+						try{
 							
-													
-							bm.compress(Bitmap.CompressFormat.JPEG, 90, fos);
-							setImgPreview(bm); //set the image to the gallery
+							Bitmap bm = BitmapFactory.decodeByteArray(data, 0,
+									(data != null) ? data.length : 0);
+							bm = getRotatedBM(bm, camera);
+							saveBitmap(bm);
 							
-							//remove the old thumbnail image
+						}catch(OutOfMemoryError e){
+							//app is out of memory
+							
+							//store a smaller and lower quality version of the image
+							final BitmapFactory.Options options = new BitmapFactory.Options();
+							options.inJustDecodeBounds = true;
+							BitmapFactory.decodeByteArray(data, 0,
+									(data != null) ? data.length : 0,options);
+							
+							options.inSampleSize = 4;
+							options.inPreferredConfig = Bitmap.Config.RGB_565;
+							
+							// Decode bitmap with inSampleSize set
+						    options.inJustDecodeBounds = false;
+						    
+						    Bitmap bm = BitmapFactory.decodeByteArray(data, 0,
+									(data != null) ? data.length : 0,options);
+						    bm = getRotatedBM(bm, camera);
+						    saveBitmap(bm);
+							
+							//send a toast notification
+							/*Context context = mActivity.getApplicationContext();
+							CharSequence text = "Sorry the app is out of memory";
+							int duration = Toast.LENGTH_SHORT;
+
+							Toast toast = Toast.makeText(context, text, duration);
+							toast.show(); */
+							
+							
+						    //from now on use the smallest version of the supported picture sizes for output
+							Camera.Parameters parameters = mCamera.getParameters();
+
+
+							picSizes = parameters.getSupportedPictureSizes();
+
+							//from now on set the pic as the smallest size possible
+							int pictureWidth = picSizes.get(picSizes.size()-1).width;
+							int pictureHeight = picSizes.get(picSizes.size()-1).height;
+							
+							
+							parameters.setPictureSize(pictureWidth, pictureHeight);
+							// set our camera
+							mCamera.setParameters(parameters);
+						
+						
+						}
+						
+						try{
+
+						    //create a small bitmap for thumbnail
+						    Bitmap thumbnailBM = decodeSampledBitmapfromData(data);
+						    thumbnailBM = getRotatedBM(thumbnailBM, camera);
+						  	setImgPreview(thumbnailBM); //set the image to the gallery
+						  	
+						  	//remove the old thumbnail image
 							if(mBM != null){
 								mBM.recycle();
 							}
-							mBM = bm;
-							
-							/*FileOutputStream fos = new FileOutputStream(pictureFile);
-							fos.write(data);*/
-							fos.close();
-							lastPicPath = pictureFile.getPath();
-							
-
-							
-							mCamera.startPreview();
-							
-							//scan a single file - exists only since API lvl 8
-							 MediaScannerConnection.scanFile(mActivity.getApplicationContext(),
-							          new String[] { pictureFile.getPath() }, null,
-							          new MediaScannerConnection.OnScanCompletedListener() {
-							      public void onScanCompleted(String path, Uri uri) {
-							          Log.i("ExternalStorage", "Scanned " + path + ":");
-							          Log.i("ExternalStorage", "-> uri=" + uri);
-							      }
-							 });
-
-							
-							
-							//Picture is in Gallery
-
-						} catch (FileNotFoundException e) {
-							//Log.d("File", "File not found: " + e.getMessage());
-						} catch (IOException e) {
-							Log.d("File",
-									"Error accessing file: " + e.getMessage());
-						}
+							mBM = thumbnailBM;
+						  }catch(OutOfMemoryError e){
+							  Log.d(TAG, "Memory exception from setting bitmap to gallery");
+							  Log.d(TAG, e.getMessage());
+							  e.getStackTrace();
+						  }
+						
+					mCamera.startPreview();
 					}
 				}
 			};
@@ -459,21 +592,20 @@ public class CameraHelper {
 
 	public void snapPicture() {
 		mActivity.mFeedbackHelper.hideMic();
-		// addMic();
-		// switch(mPreviewState){
-		// case K_STATE_FROZEN:
-		// releaseCameraAndPreview();
-		// mCamera.startPreview();
-		// mPreviewState = K_STATE_PREVIEW;
-		// break;
-		// default:
-		// shutterCallBack, PictureCallback,picturecallback,picturecallback)
+
 		mPlayer.reset();
 		try {
+			Resources resources = mActivity.getApplicationContext().getResources();
+			int resId = R.raw.cam_shutter;
+			
+			//String shutterPath = "android.resource://com.example.snapcam/"+ R.raw.cam_shutter;
+			
+			String shutterPath = "android.resource://"+resources.getResourcePackageName(resId)+ "/"+ resources.getResourceTypeName(resId) + '/' + resources.getResourceEntryName(resId);
+			Log.d(TAG,"Shutter path " + shutterPath);
+			
 			mPlayer.setDataSource(
-					mActivity,
-					Uri.parse("android.resource://com.example.snapcam/"
-							+ R.raw.cam_shutter));
+					mActivity.getApplicationContext(),
+					Uri.parse(shutterPath));
 		} catch (IllegalArgumentException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -497,9 +629,9 @@ public class CameraHelper {
 			e.printStackTrace();
 		}
 		mPlayer.start();
+		
 		mCamera.takePicture(null, null, mPicCallback);
-		// mCamera.startPreview();
-		// mPreviewState = K_STATE_FROZEN;
+
 
 		// }
 

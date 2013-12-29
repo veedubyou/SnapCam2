@@ -1,5 +1,7 @@
 package com.snapcam;
 
+import com.crashlytics.android.Crashlytics;
+
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -8,6 +10,7 @@ import javax.microedition.khronos.opengles.GL10;
 
 import android.app.Activity;
 
+import android.app.ActivityManager;
 //import android.support.v4.content.LocalBroadcastManager;
 import android.content.Context;
 import android.content.Intent;
@@ -56,9 +59,10 @@ public class MainActivity extends Activity {
 		// creates the layout for the main activity
 		// onStart releases and creates the camera
 		super.onCreate(savedInstanceState);
+		Crashlytics.start(this);
 		Log.d(TAG, "onCreate");
 
-		if (savedInstanceState == null) {
+		//if (savedInstanceState == null) {
 			setContentView(R.layout.activity_main);
 
 			// Hide the status bar
@@ -69,18 +73,20 @@ public class MainActivity extends Activity {
 			mFeedbackHelper = new FeedbackHelper(this, mPrefs);
 			
 			
+			mCameraHelper = new CameraHelper(this, mPrefs);
 			
 			//if there was a pic previously saved, get it and save it
 			String lastPicPath = mPrefs.getString("LAST_PIC_PATH",null);
+			//lastPicPath = null;
 			if(lastPicPath != null){
-				Bitmap bm = BitmapFactory.decodeFile(lastPicPath);
+				Bitmap bm = mCameraHelper.decodeSampledBitmapfromFile(lastPicPath);
 				ImageView image = (ImageView) findViewById(R.id.imageButtonGallery);
 				image.setImageBitmap(bm);
 				image.setScaleType(ImageView.ScaleType.CENTER_CROP);
 			}
-		}
+		//}
 		
-		mCameraHelper = new CameraHelper(this, mPrefs);
+		
 
 	}
 
@@ -112,6 +118,8 @@ public class MainActivity extends Activity {
 			mCameraHelper.createCameraPreview();
 			mCameraHelper.startPreview();
 			
+			//ActivityManager activityManager = (ActivityManager) getApplicationContext().getSystemService(ACTIVITY_SERVICE);
+			//Log.d(TAG,"Mem " + activityManager.getMemoryClass());
 			// TODO: wrong place to put this
 			
 			//if this is the first time the user launches the app, show initial help text
